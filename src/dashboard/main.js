@@ -305,17 +305,18 @@ function mainView() {
     ['Body', 'heart-pulse', [
       item('Blood pressure', widget({ icon: 'activity', accent: 'pulse', parts: [bloodPressure()] })),
       item('Mood', widget({ icon: 'smile', accent: 'neural', parts: [meter('mood', { min: 0, segments: 5, label: 'Self-rated', valueText: (v) => `${v} / 5`, scale: ['Low', 'High'] })] })),
-      item('Cycle', tileRow(dialTile('cycleDay', 'calendar', 'flux', {
-      mode: 'segments', min: 0, max: 28,
-      segments: [{ from: 0, to: 5, ink: 0.9, label: 'Menstrual' }, { from: 5, to: 13, ink: 0.35, label: 'Follicular' }, { from: 13, to: 16, ink: 0.65, label: 'Ovulation' }, { from: 16, to: 28, ink: 0.15, label: 'Luteal' }],
-      sub: 'Day',
-    }))),
       item('Respiration', widget({ icon: 'wind', accent: 'oxygen', parts: [readout('resp'), resp] })),
       item('Glucose · 4 h', widget({ icon: 'droplet', accent: 'signal', parts: [readout('glucose', { trend: 'up' }), Trace({ mode: 'line', data: walk(48, 92, 9, 7, 75, 125), min: 50, max: 180, band: [70, 140] })] })),
       item('Body mass · 6 mo', widget({ icon: 'scale', accent: 'signal', parts: [readout('bodyMass', { trend: 'down' }), Trace({ mode: 'line', data: walk(24, 74, 0.6, 3, 71, 74.5).map((v, i) => v - i * 0.08), min: 69, max: 76 })] })),
       item('Vision vs preflight', widget({ icon: 'eye', accent: 'signal', parts: [meter('vision', { target: [-0.25, 0.25], scale: ['−1.5', '+0.5'] })] })),
       item('Reaction time', widget({ icon: 'brain', accent: 'neural', parts: [meter('reaction', { max: 360, target: [235, 275], scale: ['180', '360'] })] })),
       item('VO₂ max', widget({ icon: 'heart-pulse', accent: 'phosphor', parts: [meter('vo2', { target: [41, 46], scale: ['25', '55'] })] })),
+      // Last in the section: found by scrolling, not leading with it.
+      item('Cycle', tileRow(dialTile('cycleDay', 'calendar', 'flux', {
+      mode: 'segments', min: 0, max: 28,
+      segments: [{ from: 0, to: 5, ink: 0.9, label: 'Menstrual' }, { from: 5, to: 13, ink: 0.35, label: 'Follicular' }, { from: 13, to: 16, ink: 0.65, label: 'Ovulation' }, { from: 16, to: 28, ink: 0.15, label: 'Luteal' }],
+      sub: 'Day',
+    }))),
     ]],
     ['Cabin', 'gauge', [
       item('Air particulate', widget({ icon: 'cloud-fog', accent: 'phosphor', parts: [meter('pm25', { segments: 6, scale: ['Good', 'Hazard'] })] })),
