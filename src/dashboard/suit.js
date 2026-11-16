@@ -11,8 +11,9 @@ function svg(markup, attrs) {
   return el
 }
 
-// The dome: an outline, two glare marks and a glint on the glass, a small air valve on the side, and a
-// collar ring at the base. Drawn on top of the squid, so it reads as being inside the glass.
+// The glass ball: an outline, two glare marks and a glint on the glass, and a small air valve on the
+// side. No collar; the squid floats in a glass hamster ball. Drawn on top of the squid, so it reads as
+// being inside the glass.
 export function helmet() {
   return svg(`
     <circle class="hm-glass" cx="50" cy="50" r="48.5" />
@@ -20,8 +21,6 @@ export function helmet() {
     <path class="hm-glare thin" d="M15,46 A37,37 0 0 1 17,38" />
     <circle class="hm-glint" cx="64" cy="13" r="1.4" />
     <path class="hm-line" d="M98.5,45 h3 v10 h-3" />
-    <ellipse class="hm-collar" cx="50" cy="92.5" rx="31" ry="6.5" />
-    <path class="hm-line hm-collar" d="M22,90.5 A31,6.5 0 0 0 78,90.5" />
   `, { class: 'helmet', viewBox: '0 0 100 100', 'aria-hidden': 'true' })
 }
 

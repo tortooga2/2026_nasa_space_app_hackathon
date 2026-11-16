@@ -7,7 +7,6 @@
 .hm-glare { stroke-width: 3; stroke-opacity: 0.55; }
 .hm-glare.thin { stroke-width: 2; stroke-opacity: 0.4; }
 .hm-glint { fill: var(--phosphor); stroke: none; opacity: 0.7; }
-.hm-collar { fill: var(--card); }
 .helmet .hm-line { stroke-opacity: 0.7; }
 
 /* Suit colours, close to the background so the suit sits back and the squid and readings stand out:
@@ -28,8 +27,9 @@
 .st-dot { fill: var(--ink); transform-box: fill-box; transform-origin: center; animation: suit-blink 4.6s infinite; }
 .st-dot + .st-dot { animation-delay: 0.04s; }
 .st-eyes { transition: transform 0.25s ease-out; }
-/* The panel lights blink now and then, like the squid. */
-@keyframes suit-blink { 0%, 93%, 100% { scale: 1 1; } 95.5% { scale: 1 0.1; } }
+/* The panel lights blink now and then, like the squid. The panel is turned on its side, so the lids
+   close sideways (across the screen), the way they would if it stood upright. */
+@keyframes suit-blink { 0%, 93%, 100% { scale: 1 1; } 95.5% { scale: 0.1 1; } }
 .st-neck { fill: var(--fabric-shade); }
 .st-tether { fill: none; stroke: var(--phosphor); stroke-width: 2.5; stroke-linecap: round; stroke-dasharray: 2 7; opacity: 0.25; }
 /* Limbs sway gently about the shoulder or hip, each on its own rhythm. */
@@ -56,10 +56,9 @@
   .suit { transform: rotate(-12deg); }
 }
 /* The helmet over the suit's left end (centre 80,106, radius 64 in the suit's 400 × 220 box), joined to
-   the neck ring on its right edge; its own collar is hidden. The squid moves in here on the spacewalk view. */
+   the neck ring on its right edge. The squid moves in here on the spacewalk view. */
 .suit-helmet {
   position: absolute; left: 4%; top: 19.1%; width: 32%; aspect-ratio: 1; border-radius: 50%;
   background: color-mix(in srgb, var(--phosphor) 5%, var(--card));
 }
-.suit-helmet .hm-collar { display: none; }
 .suit-helmet .pet-bubble { display: none; } /* too small for its speech bubble; the readings say it */
