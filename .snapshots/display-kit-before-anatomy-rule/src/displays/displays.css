@@ -1,0 +1,293 @@
+/* Layout: dark page, stat cards in an auto-fill grid. Every widget is a solid colour "block":
+   an icon tab, a 4px colour strip along the top, and a body. Ink is the page background, so the inset
+   lines are gaps, not strokes. Deliberately single-theme (device screen). */
+:root {
+  color-scheme: dark;
+  --bg: #11131b;
+  --ink: #11131b;
+  --card: #141720;
+  --line: #222736;
+  --text: #e8eaf2;
+  --muted: #8b92a8;
+  --dim: #4b5268;
+  --overlay: #8b92a8;
+  /* metric colours, one meaning each */
+  --phosphor: #7ffb94;
+  --pulse: #eb4e60;
+  --oxygen: #65d0ea;
+  --rad: #f8d45d;
+  --thermal: #ff9b5e;
+  --signal: #7aa2ff;
+  --neural: #a98bfa;
+  --flux: #f58bd0;
+  /* type */
+  --mono: 'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace;
+  /* block geometry, measured from the reference */
+  --tab: 30px;
+  --strip: 4px;
+  --gap-top: 2px;
+  --gap-left: 3px;
+  --r: 3px;
+  --row: 28px; /* panel height for non-bar widgets: one bar plus a hair */
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--text); font: 400 13px/1.55 var(--mono); -webkit-font-smoothing: antialiased; }
+
+.page { max-width: 1320px; margin: 0 auto; padding: 40px 20px 80px; display: grid; gap: 48px; }
+
+/* ------------------------------------------------------------ header */
+.top { display: grid; gap: 28px; }
+.eyebrow { font: 700 11px/1 var(--mono); letter-spacing: 0.18em; color: var(--phosphor); text-transform: uppercase; }
+.top-row { display: flex; flex-wrap: wrap; gap: 16px 32px; align-items: end; justify-content: space-between; }
+h1 { font: 800 clamp(30px, 4vw, 46px)/1.05 var(--mono); margin: 10px 0 0; letter-spacing: -0.03em; text-wrap: balance; }
+.lede { color: var(--muted); max-width: 62ch; margin: 12px 0 0; }
+.lede strong { color: var(--text); font-weight: 700; }
+nav { display: flex; flex-wrap: wrap; gap: 8px; }
+nav a, nav button {
+  background: none; cursor: pointer;
+  color: var(--text); text-decoration: none; font: 700 11px/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 9px 12px; border: 1px solid var(--line); border-radius: var(--r);
+}
+nav a:hover, nav a:focus-visible, nav button:hover, nav button:focus-visible { background: var(--phosphor); color: var(--ink); border-color: var(--phosphor); outline: none; }
+
+#legend { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+#legend li { display: grid; grid-template-columns: var(--tab) minmax(0, 1fr); min-width: 0; }
+#legend .ltab { background: var(--phosphor); color: var(--ink); border-radius: var(--r) 0 0 var(--r); display: flex; justify-content: center; padding-top: 7px; }
+#legend .ltab svg { width: 18px; height: 18px; stroke-width: 2.25; }
+#legend .lbody { border-top: var(--strip) solid var(--phosphor); border-top-right-radius: var(--r); padding: 8px 12px 10px; background: var(--card); }
+#legend b { font: 800 14px/1 var(--mono); }
+#legend .uses { color: var(--phosphor); font: 700 12px/1 var(--mono); margin-left: 6px; font-variant-numeric: tabular-nums; }
+#legend p { margin: 6px 0 6px; color: var(--muted); font-size: 12px; }
+#legend code { font: 400 11px/1.5 var(--mono); color: var(--dim); }
+
+/* ------------------------------------------------------------ sections */
+section { display: grid; gap: 18px; scroll-margin-top: 20px; }
+.section-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 16px; border-bottom: 1px solid var(--line); padding-bottom: 10px; }
+h2 { font: 800 20px/1 var(--mono); margin: 0; }
+.section-head p { margin: 0; color: var(--muted); font-size: 12px; }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; align-items: start; }
+
+/* ------------------------------------------------------------ card */
+.card { border: 1px solid var(--line); border-radius: 6px; padding: 14px; display: grid; gap: 12px; min-width: 0; background: var(--card); }
+.card.span-2 { grid-column: span 2; }
+.card.span-2 .card-body { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 16px; align-items: end; }
+.card.span-2 .card-body > .log, .card.span-2 .card-body > .note { grid-column: 1 / -1; }
+
+.card header h3 { margin: 0; font: 700 12px/1.2 var(--mono); letter-spacing: 0.1em; text-transform: uppercase; }
+.card-body { display: grid; gap: 10px; min-width: 0; }
+.card footer { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; border-top: 1px dashed var(--line); padding-top: 10px; }
+.tag { font: 500 10px/1 var(--mono); color: var(--muted); border: 1px solid var(--line); padding: 5px 7px; border-radius: var(--r); }
+.plus { color: var(--dim); font-size: 11px; }
+.note { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.5; }
+
+/* ------------------------------------------------------------ block (shared by every widget) */
+.blk { --c: var(--accent); --fg: var(--ink); display: grid; grid-template-columns: var(--tab) minmax(0, 1fr); min-width: 0; }
+.tab {
+  background: var(--c); color: var(--fg); border-radius: var(--r) 0 0 var(--r);
+  display: flex; justify-content: center; align-items: flex-start; padding-top: 6px;
+}
+.tab svg { width: 18px; height: 18px; stroke-width: 2.25; }
+.ico > span { font: 800 14px/1 var(--mono); padding-top: 2px; }
+.blk-body { border-top: var(--strip-h, var(--strip)) solid var(--c); border-top-right-radius: var(--r); padding: var(--gap-top) 0 0 var(--gap-left); min-width: 0; display: grid; }
+.panel { background: var(--c); color: var(--fg); border-bottom-right-radius: var(--r); min-width: 0; }
+
+/* ------------------------------------------------------------ warning lamp
+   Flashes in place of the widget's icon, like a dashboard telltale.
+   Warning: the icon swaps to a warning triangle, nothing else changes.
+   Bad: a small red rectangle sits centred on the tab, over the icon, with the triangle inside it.
+   The tab and the rest of the widget keep their colours. */
+.tab, .tile-icon { position: relative; }
+.ico { display: flex; justify-content: center; width: var(--tab); flex: none; }
+.lamp { display: none; position: absolute; place-items: center; }
+.tab .lamp { inset: 0 auto 0 0; width: var(--tab); border-radius: var(--r) 0 0 var(--r); padding-top: 6px; place-items: start center; }
+.tile-icon .lamp { inset: 0; }
+.tab .lamp svg { width: 18px; height: 18px; stroke-width: 2.25; }
+.tile-icon .lamp svg { width: 15px; height: 15px; stroke-width: 2.25; }
+.is-warn .lamp, .is-crit .lamp { display: grid; animation: lamp-flash 1.2s steps(1, end) infinite; }
+.is-warn .tab .lamp { background: var(--c); color: var(--fg); }
+.is-crit .tab .lamp { background: var(--c); color: var(--ink); padding-top: 3px; }
+.is-crit .tab .lamp svg { width: 24px; height: 24px; padding: 4px; background: var(--pulse); border-radius: var(--r); }
+.is-warn .tile-icon .lamp { background: var(--card); color: var(--c); }
+.is-crit .tile-icon .lamp { background: var(--card); color: var(--ink); }
+.is-crit .tile-icon .lamp svg { width: 19px; height: 19px; padding: 3px; background: var(--pulse); border-radius: var(--r); }
+@keyframes lamp-flash { 0% { opacity: 1; } 55% { opacity: 0; } }
+
+/* ------------------------------------------------------------ values in the tab
+   Optional layout (html[data-values="tab"]): the number moves into the filled icon rectangle, so a
+   widget reads as [icon + value | bar or trace]. The bar's lane is left to the fill alone. */
+.tab-val { display: none; }
+:root[data-values="tab"] .blk { grid-template-columns: auto minmax(0, 1fr); }
+:root[data-values="tab"] .tab { align-items: center; padding-top: 0; min-width: var(--tab); }
+:root[data-values="tab"] .tab .lamp { padding-top: 0; place-items: center; }
+:root[data-values="tab"] .is-crit .tab .lamp { padding-top: 0; }
+:root[data-values="tab"] .tab-val {
+  display: flex; align-items: baseline; gap: 4px; padding-right: 10px; color: var(--fg);
+  font: 800 15px/1 var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; letter-spacing: -0.02em;
+}
+:root[data-values="tab"] .readout .tab-val .num { font-size: 20px; }
+:root[data-values="tab"] .tab-val .unit { font-size: 10.5px; }
+:root[data-values="tab"] .tab-val .trend { width: 15px; height: 15px; align-self: center; }
+:root[data-values="tab"] .lane .val,
+:root[data-values="tab"] .readout .panel > .ro,
+:root[data-values="tab"] .readout .panel > .trend { display: none; }
+:root[data-values="tab"] .readout .panel { padding-left: 10px; }
+:root[data-values="tab"] .has-trace .panel { padding: 0; gap: 0; }
+:root[data-values="tab"] .solid-trace .slot { padding: 0 10px; }
+
+/* ------------------------------------------------------------ Readout */
+.readout .panel { display: flex; align-items: center; gap: 10px; padding: 0 10px 0 8px; height: var(--row); }
+.ro { display: flex; align-items: baseline; gap: 5px; flex: none; }
+.num { font: 800 22px/1 var(--mono); letter-spacing: -0.04em; font-variant-numeric: tabular-nums; }
+.readout.md .num { font-size: 20px; }
+.unit { font: 700 11px/1 var(--mono); }
+.trend { width: 18px; height: 18px; stroke-width: 2.75; flex: none; }
+.sub { font: 700 10px/1.2 var(--mono); opacity: 0.7; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.slot:empty { display: none; }
+/* History is drawn reversed: colour on dark. The current number stays on solid colour. */
+.has-trace .panel { padding-right: 0; align-items: stretch; }
+.has-trace .ro, .has-trace .trend, .has-trace .sub { align-self: center; }
+.has-trace .slot {
+  flex: 1; min-width: 0; display: flex; align-items: center; padding: 0 10px;
+  background: var(--bg); --fg: var(--c); border-bottom-right-radius: var(--r);
+}
+.has-trace .plot { --h: 18px !important; flex: 1; background: none; }
+/* Live monitors (the ECG) stay solid: ink on colour, like the reference. */
+.solid-trace .panel { padding-right: 10px; }
+.solid-trace .slot { background: none; --fg: var(--ink); padding: 0; }
+
+/* ------------------------------------------------------------ Meter */
+.meter { display: grid; gap: 6px; min-width: 0; }
+.meter-label { font: 700 11px/1 var(--mono); color: var(--muted); }
+.lane { position: relative; height: 24px; display: flex; gap: var(--gap-left); }
+.fill { position: absolute; top: 0; bottom: 0; left: 0; background: var(--c); border-bottom-right-radius: var(--r); transition: width 0.4s ease, left 0.4s ease; }
+.val { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font: 800 15px/1 var(--mono); color: var(--c); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.val.on-fill { color: var(--fg); }
+.val.notch { background: var(--bg); padding: 4px 6px; margin-right: -6px; border-radius: 2px; }
+
+.cell { flex: 1; background: color-mix(in srgb, var(--c) 14%, transparent); }
+.cell.on { background: var(--c); }
+.cell:last-of-type { border-bottom-right-radius: var(--r); }
+
+/* Tuner: a radio-dial scale on the dark track, styled like the range bars. Ticks and needle are in the
+   metric colour; the reading sits at the right end of the bar like the blood-pressure value. */
+.grad { position: absolute; bottom: 0; width: 2px; height: 6px; margin-left: -1px; background: var(--c); opacity: 0.45; }
+.grad.major { height: 12px; opacity: 1; }
+.tuner-needle {
+  position: absolute; top: calc(-1 * (var(--strip-h, var(--strip)) + var(--gap-top))); bottom: 0; width: 4px; margin-left: -2px;
+  background: var(--c); z-index: 2; transition: left 0.6s cubic-bezier(0.3, 1.4, 0.5, 1);
+}
+.tuner .val { background: var(--bg); padding: 4px 0 4px 8px; right: 8px; }
+
+.slice { height: 100%; }
+.slice:last-of-type { border-bottom-right-radius: var(--r); }
+
+/* Bullet: the strip dims, and only the baseline stretch of it stays bright. */
+.has-target .blk-body { border-top-color: color-mix(in srgb, var(--c) 28%, transparent); }
+.target { position: absolute; top: calc(-1 * (var(--strip-h, var(--strip)) + var(--gap-top))); height: var(--strip-h, var(--strip)); background: var(--c); }
+
+/* Threshold markers are notches: background-coloured cuts through the strip and fill. */
+.mark { position: absolute; top: calc(-1 * (var(--strip-h, var(--strip)) + var(--gap-top))); bottom: 0; width: 3px; margin-left: -1.5px; background: var(--bg); z-index: 1; }
+/* Labels inside the bar: small, along the bottom edge. Colour over the empty track, ink over the fill. */
+.mark span { position: absolute; bottom: 2px; z-index: 1; font: 700 8.5px/1 var(--mono); white-space: nowrap; pointer-events: none; color: color-mix(in srgb, var(--c) 80%, transparent); }
+.mark span { left: 5px; }
+.mark.flip span { left: auto; right: 6px; }
+.mark span.on-fill { color: var(--fg); opacity: 0.75; }
+.sc.hidden, .mark span.hidden { visibility: hidden; }
+/* Bars with a scale get a thick top strip, a ruler extending from the icon rectangle, and the scale
+   numbers sit in it. */
+.has-scale { --strip-h: 12px; }
+.sc {
+  position: absolute; top: calc(-1 * (var(--strip-h) + var(--gap-top))); height: var(--strip-h); z-index: 2;
+  display: flex; align-items: center; font: 800 8.5px/1 var(--mono); white-space: nowrap; pointer-events: none;
+  color: var(--ink);
+}
+.has-target .sc { color: var(--c); }
+.has-target .sc.on-strip { color: var(--ink); }
+
+.legend { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 10.5px; color: var(--muted); }
+.legend b { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 5px; vertical-align: -0.5px; }
+
+/* ------------------------------------------------------------ Radial */
+/* Square tile, like a watch complication. The low-colour widget: no background, colour only in the
+   ring, icon and number, to balance the solid bars. */
+.radial-wrap { display: grid; gap: 8px; justify-items: start; align-content: start; min-width: 0; }
+.tile {
+  --c: var(--accent); position: relative; width: 96px; aspect-ratio: 1; flex: none;
+}
+.tile > svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.r-track { fill: none; stroke: color-mix(in srgb, var(--c) 18%, transparent); stroke-width: 9; stroke-linecap: round; }
+.r-band { fill: none; stroke: color-mix(in srgb, var(--c) 55%, transparent); stroke-width: 9; stroke-linecap: round; }
+.r-fill { fill: none; stroke: var(--c); stroke-width: 9; stroke-linecap: round; }
+.r-track.thin, .r-fill.thin { stroke-width: 7; }
+.r-seg { fill: none; stroke: var(--c); stroke-width: 9; }
+.r-dot { fill: var(--c); stroke: var(--card); stroke-width: 4; transition: cx 0.4s ease, cy 0.4s ease; }
+.r-now { fill: var(--text); stroke: var(--card); stroke-width: 4; }
+.tile-in { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; color: var(--c); text-align: center; }
+.tile-icon svg { width: 15px; height: 15px; stroke-width: 2.25; display: block; }
+.t-num { font: 800 19px/1 var(--mono); letter-spacing: -0.04em; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.t-unit { font: 700 9px/1.1 var(--mono); color: var(--muted); max-width: 62px; }
+.tile.ring:has(.thin) .t-num { font-size: 15px; }
+.tile.ring:has(.thin) .tile-icon svg { width: 12px; height: 12px; }
+.radial-wrap .legend { flex-direction: column; gap: 3px; }
+
+/* Tile beside the card's other widgets. */
+.card .card-body.with-tile { grid-template-columns: auto minmax(0, 1fr); gap: 10px 14px; align-items: start; }
+.card-body.with-tile > .note { grid-column: 1 / -1; }
+
+/* ------------------------------------------------------------ Trace */
+/* Plots are reversed: the metric colour draws on a dark field; the tab and strip stay solid. */
+.trace .panel { --fg: var(--c); background: var(--bg); display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; padding: 4px 10px; min-height: var(--row); align-content: center; }
+.trace .panel:has(.ylabels) { grid-template-columns: auto minmax(0, 1fr); }
+.plot {
+  position: relative; height: var(--h, 56px);
+  background: linear-gradient(color-mix(in srgb, var(--fg) 14%, transparent) 1px, transparent 1px) 0 0 / 100% 25%;
+}
+.plot svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.t-line { fill: none; stroke: var(--fg); stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
+.t-band { fill: var(--fg); fill-opacity: 0.12; }
+.t-dot { position: absolute; width: 8px; height: 8px; margin: -4px 0 0 -4px; border-radius: 50%; background: var(--fg); }
+.ylabels { display: flex; flex-direction: column; justify-content: space-between; font: 700 7.5px/1 var(--mono); opacity: 0.7; }
+
+.mode-xy .panel { padding: 4px 8px; }
+.mode-xy svg { width: 100%; height: auto; display: block; }
+.t-grid { stroke: var(--fg); stroke-opacity: 0.16; stroke-width: 0.8; }
+.t-zone { fill: var(--fg); fill-opacity: 0.12; stroke: var(--fg); stroke-width: 1.2; stroke-dasharray: 3 2; }
+.t-point { fill: var(--fg); }
+.t-axis { fill: var(--fg); font: 700 5.5px var(--mono); text-anchor: middle; }
+.t-axis.end { text-anchor: end; }
+.t-axis.start { text-anchor: start; }
+
+/* ------------------------------------------------------------ Log */
+.log { list-style: none; margin: 0; padding: 0; display: grid; }
+.log li { display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.log li:last-child { border-bottom: 0; }
+.log time { color: var(--dim); font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.log .text { min-width: 0; display: flex; align-items: center; gap: 8px; }
+.swatch { width: 12px; height: 12px; border-radius: 2px; flex: none; }
+.chip, .step { font: 800 10px/1 var(--mono); letter-spacing: 0.01em; padding: 5px 7px; border-radius: var(--r); white-space: nowrap; color: var(--ink); }
+.chip { background: var(--accent); }
+.chip.ok { background: var(--phosphor); }
+.chip.warn { background: transparent; color: var(--accent); box-shadow: inset 0 0 0 1.5px var(--accent); }
+.chip.crit { background: var(--pulse); }
+.chip.info { background: var(--signal); }
+.steps { display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end; }
+.step.done { background: var(--accent); }
+.step.active { background: repeating-linear-gradient(135deg, var(--accent) 0 4px, color-mix(in srgb, var(--accent) 45%, var(--bg)) 4px 8px); }
+.step.todo { color: var(--muted); box-shadow: inset 0 0 0 1.5px var(--dim); }
+.step.skip { color: var(--dim); text-decoration: line-through; }
+
+/* ------------------------------------------------------------ responsive */
+@media (max-width: 640px) {
+  .page { padding: 28px 16px 60px; gap: 36px; }
+  .card.span-2 { grid-column: auto; }
+  .card.span-2 .card-body { grid-template-columns: minmax(0, 1fr); }
+  .log li { grid-template-columns: 52px minmax(0, 1fr); }
+  .log li > .chip, .log li > .steps { grid-column: 2; justify-self: start; justify-content: flex-start; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .is-warn .lamp, .is-crit .lamp { animation: none; }
+  .fill, .r-dot, .tuner-needle { transition: none; }
+}

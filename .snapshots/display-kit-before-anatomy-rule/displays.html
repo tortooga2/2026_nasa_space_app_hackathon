@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vital-Link Display Kit</title>
+  </head>
+  <body>
+    <main class="page">
+      <header class="top">
+        <div class="top-row">
+          <div>
+            <div class="eyebrow">VL-7 Vital-Link</div>
+            <h1>Display Kit</h1>
+            <p class="lede">
+              Every one of the <strong id="stat-count">32</strong> health and environment measurements, drawn with
+              <strong>five components</strong>. Each card's footer names the components and variant it uses.
+              All values are sample data for layout only.
+            </p>
+          </div>
+          <nav aria-label="Sections">
+            <button id="values-toggle" type="button" aria-pressed="true">Numbers: in tab</button>
+            <a href="#lamps">Lamps</a>
+            <a href="#internal">Internal</a>
+            <a href="#external">External</a>
+            <a href="#user">User input</a>
+            <a href="/">Back to game</a>
+          </nav>
+        </div>
+        <ul id="legend" aria-label="Components"></ul>
+      </header>
+      <div id="kit" style="display: contents"></div>
+    </main>
+    <script type="module" src="/src/displays/main.js"></script>
+  </body>
+</html>

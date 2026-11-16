@@ -1,0 +1,397 @@
+/* Companion dashboard. Reuses the Display Kit widgets (displays.css); this file lays out the three views
+   (main, spacewalk, history), the tasks panel and the status bar.
+
+   Theme: a Pip-Boy style terminal. One plain phosphor-green frame (standard 2px border, square-ish
+   corners, no flourishes) around the content, a green divider before the tasks, green bar markers on
+   section headings, and a status bar under the frame. Same font as the kit. */
+:root {
+  --bg: #0c0a10;
+  --ink: #0c0a10;
+  --card: #120f17;
+  --line: color-mix(in srgb, var(--phosphor) 22%, var(--bg));
+  --frame: var(--phosphor);
+  --text: #e4fbe8;
+  --muted: #8db39a;
+  --dim: #50705d;
+
+  /* Widget colours are the Display Kit's own (--phosphor, --pulse, --oxygen, --signal, --neural, --flux,
+     --thermal, --rad), not redefined here. Caution is amber and warning red, used by the lamps and alerts. */
+  --caution: #ffb000; /* amber */
+  --warning: #ff2d2d; /* red */
+
+  /* One type scale, four sizes: labels, body, values, clock. Nothing smaller than 10px. */
+  --fs-1: 10px;
+  --fs-2: 13px;
+  --fs-3: 20px;
+  --fs-4: 44px;
+}
+/* A faint warm/violet glow behind the frame, like the reference's backdrop. Kept very low so the widgets'
+   background-coloured gaps still read as gaps. */
+body {
+  background:
+    radial-gradient(ellipse 60% 55% at 35% 45%, color-mix(in srgb, #7a1f4a 14%, transparent), transparent),
+    radial-gradient(ellipse 50% 50% at 75% 70%, color-mix(in srgb, #3a2a8a 12%, transparent), transparent),
+    var(--bg);
+}
+
+.shell { height: 100vh; display: grid; grid-template-rows: minmax(0, 1fr) auto; padding: 20px 24px 0; gap: 0; }
+.dash {
+  min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 440px;
+  border: 2px solid var(--frame); border-radius: 4px; overflow: hidden;
+}
+
+/* Section headings carry a small green bar in front, like the reference. */
+.sec-head { display: flex; align-items: center; gap: 8px; color: var(--phosphor); }
+.sec-head::before { content: ''; width: 4px; height: 0.95em; background: currentColor; flex: none; }
+
+/* ------------------------------------------------------------ stage */
+.stage { min-width: 0; min-height: 0; display: grid; }
+.view-host { min-height: 0; }
+.view { height: 100%; min-height: 0; }
+.widget { display: grid; gap: 8px; min-width: 0; }
+
+/* ------------------------------------------------------------ status bar (below the frame) */
+.statusbar { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 32px; padding: 16px 4px 20px; }
+.views { display: flex; align-items: center; gap: 12px; }
+.view-name { font: 700 10.5px/1 var(--mono); color: var(--dim); min-width: 8ch; }
+.views .view-name:first-child { text-align: right; }
+/* The switcher is one bar, chevrons at each end, like the reference's "View deck". */
+.view-switch {
+  display: grid; grid-template-columns: 44px minmax(12ch, auto) 44px; align-items: stretch; height: 44px;
+  background: color-mix(in srgb, var(--phosphor) 16%, var(--bg)); border: 2px solid var(--frame); border-radius: 4px;
+}
+.view-now { display: grid; place-items: center; font: 800 14px/1 var(--mono); color: var(--phosphor); padding: 0 12px; }
+.view-switch button { display: grid; place-items: center; cursor: pointer; background: none; border: 0; color: var(--phosphor); }
+.view-switch button svg { width: 20px; height: 20px; }
+.view-switch button:hover, .view-switch button:focus-visible { background: var(--phosphor); color: var(--ink); outline: none; }
+
+.clock { display: flex; align-items: center; gap: 14px; }
+.clock-time { font: 800 44px/1 var(--mono); letter-spacing: -0.04em; font-variant-numeric: tabular-nums; color: var(--phosphor); }
+.clock-sec { font-size: 20px; color: color-mix(in srgb, var(--phosphor) 60%, var(--bg)); margin-left: 2px; }
+.clock-sub { display: grid; gap: 5px; font: 700 12px/1 var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.clock-sub > span:first-child { color: var(--phosphor); letter-spacing: 0.08em; }
+.clock-sub b { color: var(--text); }
+.status-right { justify-self: end; display: flex; align-items: center; gap: 24px; }
+.open-count { display: flex; align-items: baseline; gap: 10px; color: var(--phosphor); }
+.open-count span { font: 700 13px/1 var(--mono); }
+.open-count b { font: 800 34px/1 var(--mono); font-variant-numeric: tabular-nums; }
+
+/* Captioned widget, used in the scroll column and the spacewalk view. */
+.item { display: grid; gap: 10px; min-width: 0; }
+.item-title { font: 500 11px/1 var(--mono); color: var(--muted); }
+.item .meter-label { display: none; } /* the caption already names it */
+.group { display: grid; gap: 16px; }
+.group h2 { font: 800 13px/1 var(--mono); margin: 0; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+
+/* ------------------------------------------------------------ main: dials | circle + wrapped snap column */
+.view-main {
+  display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 36px 56px; padding: 36px 44px;
+}
+/* Top bar: the core vitals across the full width, with room to breathe. */
+.topbar {
+  grid-column: 1 / -1; display: grid; grid-template-columns: 1.3fr repeat(2, minmax(0, 1fr)); gap: 56px;
+  padding-bottom: 32px; border-bottom: 2px solid var(--line); align-items: end;
+}
+.topbar .meter-label, .bottombar .meter-label { display: none; }
+/* Bottom bar: slow-moving cabin exposures (CO₂, radiation, noise, air), mirroring the top bar. */
+.bottombar {
+  grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 56px;
+  padding-top: 30px; border-top: 2px solid var(--line); align-items: start;
+}
+.dials { display: grid; grid-auto-rows: 92px; grid-template-columns: 92px; gap: 44px; align-content: center; }
+.dials .tile, .tile-row .tile { width: 92px; }
+.dials .legend, .tile-row .legend { display: none; } /* the kit's legends don't fit; the tiles are unchanged */
+.dials .t-num, .tile-row .t-num { font-size: 15px; }
+.dials .t-unit, .tile-row .t-unit { max-width: 64px; }
+.dials .tile-icon svg, .tile-row .tile-icon svg { width: 12px; height: 12px; }
+.tile-row { display: flex; flex-wrap: wrap; gap: 22px; }
+
+.orbit { position: relative; min-height: 0; }
+.companion {
+  position: absolute; border-radius: 50%;
+  background: color-mix(in srgb, var(--phosphor) 4%, var(--card)); box-shadow: inset 0 0 0 2px var(--line);
+}
+
+/* A list that turns like a dial, settling one row at a time beside the circle. The circle's area is
+   masked out, so rows that are still bending slide behind its edge. */
+.snap {
+  position: absolute; inset: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none;
+  scroll-snap-type: y mandatory; padding-right: 64px;
+  -webkit-mask-image: radial-gradient(circle at var(--cx, -999px) var(--cy, 0), transparent calc(var(--R, 0px) - 14px), #000 calc(var(--R, 0px) + 10px));
+  mask-image: radial-gradient(circle at var(--cx, -999px) var(--cy, 0), transparent calc(var(--R, 0px) - 14px), #000 calc(var(--R, 0px) + 10px));
+}
+.snap::-webkit-scrollbar { display: none; }
+.snap:focus-visible { outline: none; }
+.snap-list { display: grid; gap: 88px; padding-top: 8px; }
+.snap-sec { display: flex; flex-direction: column; gap: 44px; }
+/* Every row is a snap point: a short swipe settles the nearest row beside the circle's centre. */
+.snap-sec > * { scroll-snap-align: center; }
+.snap-sec > * { max-width: 460px; will-change: margin-left, opacity, filter; }
+.snap-title { font: 800 13px/1 var(--mono); margin: 0; }
+
+/* Section switcher: big touch targets down the right edge. */
+.snap-nav { position: absolute; right: 0; top: 50%; translate: 0 -50%; display: grid; gap: 6px; }
+.snap-nav button {
+  width: 52px; min-height: 52px; display: grid; place-items: center; align-content: center; gap: 4px; cursor: pointer;
+  background: color-mix(in srgb, var(--phosphor) 8%, var(--bg)); color: var(--phosphor); border: 2px solid var(--line); border-radius: var(--r);
+  font: 700 8.5px/1 var(--mono); padding: 0;
+}
+.snap-nav svg { width: 16px; height: 16px; }
+.snap-nav button.on { background: var(--phosphor); color: var(--ink); border-color: var(--phosphor); }
+.snap-nav button:focus-visible { outline: 2px solid var(--phosphor); outline-offset: 2px; }
+
+
+/* Compact widgets: thinner bars for the busy main view. */
+.compact { --tab: 24px; --strip: 3px; --row: 20px; }
+.compact .lane { height: 16px; }
+.compact .has-scale { --strip-h: 10px; }
+.compact .tab { padding-top: 3px; }
+.compact .tab svg, .compact .tab .lamp svg { width: 14px; height: 14px; }
+.compact .is-crit .tab .lamp svg { width: 18px; height: 18px; padding: 3px; }
+.compact .meter-label { display: none; }
+.compact .sc, .compact .mark span { font-size: 7px; }
+.compact .grad { height: 4px; }
+.compact .grad.major { height: 8px; }
+.compact .val { font-size: 12px; }
+.compact .num { font-size: 16px; }
+:root[data-values="tab"] .compact .tab-val { font-size: 12px; padding-right: 7px; gap: 3px; }
+:root[data-values="tab"] .compact .readout .tab-val .num { font-size: 14px; }
+:root[data-values="tab"] .compact .tab-val .unit { font-size: 9px; }
+:root[data-values="tab"] .compact .tab-val .trend { width: 12px; height: 12px; }
+.compact .plot { --h: 14px; }
+.compact .item-title { font-size: 10px; }
+.compact .widget { gap: 5px; }
+
+/* ------------------------------------------------------------ spacewalk: the essentials, drawn larger */
+.view-eva { overflow-y: auto; padding: 40px 48px; display: grid; gap: 40px; align-content: start; }
+
+.eva-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
+.eva-tag { font: 800 22px/1 var(--mono); color: var(--oxygen); }
+.eva-clock { font: 500 12px/1 var(--mono); color: var(--muted); }
+.eva-clock b { color: var(--text); font: 800 18px/1 var(--mono); font-variant-numeric: tabular-nums; margin-left: 6px; }
+.eva-tiles { display: grid; grid-template-columns: repeat(4, 96px); justify-content: space-between; gap: 16px; }
+.eva-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 40px 56px; align-items: start; }
+
+/* ------------------------------------------------------------ history: a dense grid of charts
+   Sized for a wearable: one caption line over a short chart, no card chrome. Charts stretch to the row. */
+.view-history { overflow-y: auto; padding: 36px 44px 48px; }
+.hist-head { display: flex; align-items: baseline; gap: 14px; margin-bottom: 28px; }
+.hist-head h2 { font: 800 15px/1 var(--mono); margin: 0; }
+.hist-head span { color: var(--dim); font-size: 10px; }
+.hist-group { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 22px; margin-bottom: 52px; }
+/* Category label running up the left side of its group. */
+.hist-cat {
+  margin: 0; writing-mode: vertical-rl; rotate: 180deg; text-align: end;
+  font: 800 11px/1 var(--mono); color: var(--phosphor); border-left: 2px solid var(--line); padding-left: 8px;
+}
+.hist-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); grid-auto-flow: dense; gap: 32px 32px; }
+.h-card { min-width: 0; display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 8px; }
+.h-card.wide { grid-column: span 2; }
+.h-card header { display: flex; align-items: baseline; gap: 6px; min-width: 0; }
+.h-card h3 { margin: 0; font: 700 10.5px/1.2 var(--mono); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.h-span { font: 500 9.5px/1 var(--mono); color: var(--dim); white-space: nowrap; }
+.h-val { margin-left: auto; font: 500 9.5px/1 var(--mono); color: var(--muted); white-space: nowrap; }
+.h-val b { font: 800 13px/1 var(--mono); color: var(--text); font-variant-numeric: tabular-nums; }
+/* Stretch the chart through the widget's layers so it fills the row height. */
+.h-card .widget, .h-card .blk { height: 100%; }
+.h-card .blk-body { grid-template-rows: minmax(0, 1fr); }
+.h-card .trace .panel { align-content: stretch; padding: 3px 6px; min-height: 0; }
+.h-card .plot { height: auto; min-height: var(--h); }
+.h-card .mode-xy .panel { align-content: center; }
+.view-history .ylabels { width: 30px; align-items: flex-end; font-size: 8px; }
+/* Time labels under each chart, lined up with the plot (tab + scale column). */
+.h-x {
+  display: flex; justify-content: space-between; padding: 0 6px 0 calc(var(--tab) + var(--gap-left) + 44px);
+  font: 500 8.5px/1 var(--mono); color: var(--dim);
+}
+
+/* ------------------------------------------------------------ tasks */
+.tasks { background: color-mix(in srgb, var(--card) 70%, transparent); border-left: 2px solid var(--frame); padding: 36px 36px; overflow-y: auto; display: flex; flex-direction: column; gap: 28px; }
+
+.tasks header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.tasks h1 { font: 800 22px/1 var(--mono); margin: 0; }
+#task-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 18px; }
+
+/* A task row is a widget block: icon tab, colour strip, dark body. The due time leads the row. */
+.task { --c: var(--accent); display: grid; grid-template-columns: var(--tab) minmax(0, 1fr); }
+.t-tab { background: var(--c); color: var(--ink); border-radius: var(--r) 0 0 var(--r); display: flex; justify-content: center; padding-top: 12px; }
+.t-tab svg { width: 18px; height: 18px; }
+.t-body {
+  border-top: var(--strip) solid var(--c); border-top-right-radius: var(--r); background: var(--bg);
+  display: grid; grid-template-columns: 76px minmax(0, 1fr) auto; column-gap: 16px; row-gap: 2px; padding: 14px 14px 14px 18px; align-items: center;
+}
+.t-time { grid-row: 1 / 4; font: 800 24px/1 var(--mono); letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.t-text { font: 700 14px/1.2 var(--mono); }
+.t-detail { grid-row: 2; grid-column: 2; font-size: 11.5px; color: var(--muted); line-height: 1.4; }
+.t-when { grid-row: 3; grid-column: 2; font: 700 var(--fs-2)/1.4 var(--mono); color: var(--text); }
+.task.late .t-time, .task.late .t-when { color: var(--rad); }
+.task.next .t-when { color: var(--phosphor); }
+.t-body button {
+  grid-row: 1 / 4; grid-column: 3; width: 40px; height: 40px; display: grid; place-items: center; cursor: pointer;
+  background: none; color: var(--c); border: 1.5px solid var(--c); border-radius: var(--r);
+}
+.t-body button svg { width: 18px; height: 18px; }
+.t-body button:hover, .t-body button:focus-visible { background: var(--c); color: var(--ink); outline: none; }
+.task.done .t-tab { background: color-mix(in srgb, var(--c) 35%, var(--bg)); }
+.task.done .t-body { border-top-color: color-mix(in srgb, var(--c) 35%, var(--bg)); }
+.task.done .t-time, .task.done .t-text { color: var(--muted); }
+.task.done .t-text { text-decoration: line-through; }
+.task.done .t-body button { background: color-mix(in srgb, var(--c) 35%, var(--bg)); border-color: transparent; color: var(--ink); cursor: default; }
+
+.kit-link { margin-top: auto; color: var(--muted); font: 700 11px/1 var(--mono); text-decoration: none; }
+.kit-link:hover { color: var(--text); }
+
+/* ------------------------------------------------------------ narrow: everything stacks and the page scrolls */
+@media (max-width: 1100px) {
+  .shell { height: auto; padding: 8px 8px 0; }
+  .dash { grid-template-columns: minmax(0, 1fr); }
+  .statusbar { grid-template-columns: minmax(0, 1fr); justify-items: center; gap: 12px; order: -1; padding: 4px 0 12px; }
+  .open-count { justify-self: center; }
+  .view-main { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; }
+  .topbar, .bottombar { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px 24px; }
+  .bottombar { order: 9; }
+  .dials { grid-template-columns: repeat(4, 76px); grid-auto-rows: auto; gap: 12px; justify-content: space-between; }
+  .orbit { display: grid; gap: 16px; }
+  .companion { position: static; width: min(100%, 320px); aspect-ratio: 1; justify-self: center; }
+  .snap { position: static; overflow: visible; padding: 0; scroll-snap-type: none; -webkit-mask-image: none; mask-image: none; display: grid; gap: 24px; }
+  .snap-sec > * { max-width: none; }
+  .snap-nav { display: none; }
+  .view-eva, .view-history { overflow: visible; }
+  .tasks { border-left: 0; border-top: 2px solid var(--frame); }
+}
+@media (max-width: 640px) {
+  .view-main { padding: 16px; }
+  .dials { grid-template-columns: repeat(4, 72px); gap: 8px; }
+  .dials .tile { width: 72px; }
+  .topbar { grid-template-columns: minmax(0, 1fr); }
+  .view-eva, .view-history { padding: 20px 16px; }
+  .eva-tiles { grid-template-columns: repeat(2, 96px); justify-content: space-around; }
+  .eva-grid { grid-template-columns: minmax(0, 1fr); }
+  .hist-grid { grid-template-columns: minmax(0, 1fr); }
+  .bottombar { grid-template-columns: minmax(0, 1fr); }
+  .h-card.wide { grid-column: auto; }
+  .tasks { padding: 24px 16px; }
+}
+
+/* ------------------------------------------------------------ status colours + type scale
+   Overrides for the kit's widgets on this page only. */
+.shell .is-crit .tab .lamp svg, .shell .is-crit .tile-icon .lamp svg { background: var(--warning); }
+.shell .chip.crit { background: var(--warning); }
+.shell .chip.warn { color: var(--caution); box-shadow: inset 0 0 0 1.5px var(--caution); }
+.task.late .t-time, .task.late .t-when { color: var(--caution); }
+
+/* Labels (10px): scales, axes, units, captions. */
+.shell .sc, .shell .mark span, .shell .ylabels, .shell .t-unit, .shell .unit, .shell .tab-val .unit,
+.shell .h-x, .shell .legend, .shell .chip, .shell .step, .shell .item-title, .shell .meter-label,
+.shell .snap-nav button, .shell .h-val, .shell .hist-cat, .shell .clock-sub, .shell .eva-clock {
+  font-size: var(--fs-1);
+}
+.shell .ylabels { opacity: 0.85; }
+/* Body (13px): names, task text, headings within the views. */
+.shell .h-card h3, .shell .t-text, .shell .t-detail, .shell .log li, .shell .log time, .shell .view-now,
+.shell .open-count span, .shell .hist-head span, .shell .snap-title, .shell .group h2 {
+  font-size: var(--fs-2);
+}
+/* Values (20px): readings, dial numbers, task times, panel titles. */
+.shell .num, .shell .tab-val, :root[data-values="tab"] .shell .tab-val, :root[data-values="tab"] .shell .readout .tab-val .num,
+.shell .val, .shell .t-num, .shell .h-val b, .shell .t-time, .shell .open-count b, .shell .clock-sec,
+.shell .tasks h1, .shell .hist-head h2, .shell .eva-tag, .shell .eva-clock b {
+  font-size: var(--fs-3);
+}
+/* Clock (44px). */
+.shell .clock-time { font-size: var(--fs-4); }
+/* Bigger labels need a slightly thicker ruler strip to sit in. */
+.shell { --scale-strip: 13px; }
+.shell .has-scale { --strip-h: var(--scale-strip); }
+/* Every bar is the same height. A bar with no scale keeps its thin top strip, and its body grows by the
+   difference instead, so it lines up with the bars that carry scale numbers. Readouts match too. */
+.shell .meter:not(.has-scale) .lane { height: calc(24px + var(--scale-strip) - var(--strip)); }
+.shell .readout .panel { height: calc(24px + var(--scale-strip) - var(--strip)); }
+
+/* ------------------------------------------------------------ alert lamps
+   The lamp over a widget's icon is a small coloured box with a warning sign: amber for caution, red for
+   warning. It flashes, so it reads the same on any widget colour. */
+.shell .is-warn .tab .lamp, .shell .is-crit .tab .lamp { background: var(--c); padding-top: 3px; }
+:root[data-values="tab"] .shell .is-warn .tab .lamp, :root[data-values="tab"] .shell .is-crit .tab .lamp { padding-top: 0; }
+.shell .is-warn .tab .lamp svg, .shell .is-crit .tab .lamp svg {
+  width: 24px; height: 24px; padding: 4px; border-radius: var(--r); color: var(--ink); background: var(--caution);
+}
+.shell .is-crit .tab .lamp svg { background: var(--warning); }
+.shell .is-warn .tile-icon .lamp svg, .shell .is-crit .tile-icon .lamp svg {
+  width: 16px; height: 16px; padding: 2px; border-radius: 2px; color: var(--ink); background: var(--caution);
+}
+.shell .is-crit .tile-icon .lamp svg { background: var(--warning); }
+
+/* ------------------------------------------------------------ inverted alert state
+   A widget at caution (amber) or warning (red) flashes between its own colours and an inverted block of
+   the alert colour: what was drawn in the metric colour (tab, strip, fill, ticks, ring) turns dark, and
+   what was dark (the empty track, notches, gaps) takes the alert colour. A 4px halo of the alert colour
+   squares off the rounded inner corners so the block reads as one shape. main.js sets
+   html[data-blink="off"] for the off half of each 1.2 s beat, so every alert and lamp flashes together;
+   with reduced motion it never does, and the inverted state holds steady. */
+.shell .blk.is-warn, .shell .tile.is-warn { --alert: var(--caution); }
+.shell .blk.is-crit, .shell .tile.is-crit { --alert: var(--warning); }
+:root:not([data-blink="off"]) .shell .blk:is(.is-warn, .is-crit) {
+  --c: var(--ink); --fg: var(--alert); --bg: var(--alert); --card: var(--alert);
+  background: var(--alert); border-radius: var(--r); box-shadow: 0 0 0 4px var(--alert);
+}
+:root:not([data-blink="off"]) .shell :is(.is-warn, .is-crit) .sc { color: var(--alert); }
+:root:not([data-blink="off"]) .shell .has-target :is(.is-warn, .is-crit) .sc:not(.on-strip) { color: var(--ink); }
+:root:not([data-blink="off"]) .shell .solid-trace:is(.is-warn, .is-crit) .slot { --fg: var(--alert); }
+/* Dials: the tile fills in and the ring, icon and number go dark. */
+:root:not([data-blink="off"]) .shell .tile:is(.is-warn, .is-crit) {
+  --c: var(--ink); --card: var(--alert); --text: var(--ink); --muted: var(--ink);
+  background: var(--alert); border-radius: 50%; box-shadow: 0 0 0 4px var(--alert);
+}
+/* The lamp's own box would vanish into the block, so it flips too: dark box, alert-coloured sign. It
+   shows only in the inverted half of the beat; in the other half the widget's own icon is back. */
+.shell :is(.blk, .tile):is(.is-warn, .is-crit) .lamp svg { background: var(--ink); color: var(--alert); }
+.shell :is(.is-warn, .is-crit) .lamp { animation: none; }
+:root[data-blink="off"] .shell :is(.is-warn, .is-crit) .lamp { display: none; }
+
+/* Frame flash (debug toggle): the frame lines flash with the alerts, in the worst alert's colour. */
+:root[data-frame-flash][data-alert="warn"]:not([data-blink="off"]) .shell { --frame: var(--caution); }
+:root[data-frame-flash][data-alert="crit"]:not([data-blink="off"]) .shell { --frame: var(--warning); }
+
+/* ------------------------------------------------------------ debug menu */
+.debug-toggle {
+  height: 32px; padding: 0 12px; cursor: pointer; font: 700 var(--fs-1)/1 var(--mono); color: var(--muted);
+  background: none; border: 2px solid var(--line); border-radius: var(--r);
+}
+.debug-toggle[aria-pressed="true"], .debug-toggle:hover { color: var(--ink); background: var(--phosphor); border-color: var(--phosphor); }
+
+.debug {
+  position: fixed; top: 20px; right: 24px; bottom: 20px; width: 420px; z-index: 20; overflow-y: auto;
+  background: var(--card); border: 2px solid var(--phosphor); border-radius: 4px; padding: 24px;
+  display: grid; align-content: start; gap: 20px; box-shadow: 0 20px 60px rgb(0 0 0 / 0.6);
+}
+.debug[hidden] { display: none; }
+.debug header { display: flex; align-items: center; justify-content: space-between; }
+.debug h2 { margin: 0; font: 800 var(--fs-3)/1 var(--mono); }
+.dbg-close { width: 36px; height: 36px; display: grid; place-items: center; cursor: pointer; background: none; color: var(--text); border: 2px solid var(--line); border-radius: var(--r); }
+.dbg-close svg { width: 18px; height: 18px; }
+.dbg-switch { display: flex; align-items: center; gap: 10px; cursor: pointer; font: 700 var(--fs-2)/1 var(--mono); }
+.dbg-switch input { width: 18px; height: 18px; margin: 0; accent-color: var(--phosphor); cursor: pointer; }
+.dbg-presets { display: flex; flex-wrap: wrap; gap: 8px; }
+.dbg-presets button {
+  padding: 8px 10px; cursor: pointer; font: 700 var(--fs-1)/1 var(--mono); color: var(--phosphor);
+  background: color-mix(in srgb, var(--phosphor) 10%, var(--bg)); border: 2px solid var(--line); border-radius: var(--r);
+}
+.dbg-presets button:hover { background: var(--phosphor); color: var(--ink); }
+.dbg-body { display: grid; gap: 24px; }
+.dbg-body section { display: grid; gap: 14px; }
+.dbg-body h3 { margin: 0; font: 800 var(--fs-2)/1 var(--mono); color: var(--phosphor); padding-bottom: 8px; border-bottom: 2px solid var(--line); }
+.dbg-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 6px 10px; }
+.dbg-label { font: 700 var(--fs-2)/1.2 var(--mono); }
+.dbg-val { font: 800 var(--fs-2)/1 var(--mono); font-variant-numeric: tabular-nums; }
+.dbg-tone { font: 800 var(--fs-1)/1 var(--mono); padding: 4px 6px; border-radius: var(--r); color: var(--ink); background: var(--phosphor); min-width: 7ch; text-align: center; }
+.dbg-tone[data-tone="warn"] { background: var(--caution); }
+.dbg-tone[data-tone="crit"] { background: var(--warning); }
+.dbg-range { grid-column: 1 / -1; display: grid; grid-template-columns: 34px minmax(0, 1fr) 6ch; align-items: center; gap: 4px 8px; font: 500 var(--fs-1)/1 var(--mono); color: var(--muted); }
+.dbg-range.single { grid-template-columns: minmax(0, 1fr); }
+.dbg-range b { font-weight: 700; color: var(--text); text-align: right; font-variant-numeric: tabular-nums; }
+.dbg-range input { width: 100%; accent-color: var(--phosphor); }
+@media (max-width: 640px) {
+  .debug { inset: 8px; width: auto; }
+}
