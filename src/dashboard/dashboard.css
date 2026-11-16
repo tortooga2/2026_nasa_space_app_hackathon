@@ -419,6 +419,14 @@ body {
   .rig-body, .rig-spring, .flow-reading .beat, .flow-spin { animation: none !important; }
 }
 
+/* ------------------------------------------------------------ links to the other pages (status bar) */
+.page-links { display: flex; gap: 8px; }
+.page-links a {
+  height: 32px; display: grid; place-items: center; padding: 0 12px; white-space: nowrap; text-decoration: none;
+  font: 700 var(--fs-1)/1 var(--mono); color: var(--muted); border: 2px solid var(--line); border-radius: var(--r);
+}
+.page-links a:hover, .page-links a:focus-visible { color: var(--phosphor); border-color: var(--phosphor); outline: none; }
+
 /* ------------------------------------------------------------ debug menu */
 .debug-toggle {
   height: 32px; padding: 0 12px; cursor: pointer; font: 700 var(--fs-1)/1 var(--mono); color: var(--muted);
