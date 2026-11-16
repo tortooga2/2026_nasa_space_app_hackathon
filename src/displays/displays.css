@@ -86,10 +86,10 @@ h2 { font: 800 20px/1 var(--mono); margin: 0; }
 .card.span-2 .card-body > .log, .card.span-2 .card-body > .note { grid-column: 1 / -1; }
 
 .card header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
-/* The companion's bowl on its kit card. */
+/* The companion's bowl on its kit card: glass, with the helmet drawn over it (suit.js). */
 .bowl {
   position: relative; width: 100%; max-width: 260px; aspect-ratio: 1; justify-self: center; border-radius: 50%;
-  background: color-mix(in srgb, var(--phosphor) 4%, var(--card)); box-shadow: inset 0 0 0 2px var(--line);
+  background: radial-gradient(circle at 34% 28%, color-mix(in srgb, var(--phosphor) 7%, transparent), transparent 55%), color-mix(in srgb, var(--phosphor) 3%, var(--card));
 }
 .card header h3 { margin: 0; font: 700 12px/1.2 var(--mono); letter-spacing: 0.1em; text-transform: uppercase; }
 .card-body { display: grid; gap: 10px; min-width: 0; }

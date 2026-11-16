@@ -49,6 +49,7 @@ import {
 import { widget, Readout, Meter, Radial, Trace, Log, startAlertBeat } from '../displays/components.js'
 import { createSquid } from './squid.js'
 import { createFlows } from './flows.js'
+import { helmet, suit } from './suit.js'
 
 // Companion dashboard, three views cycled with the arrows under the stage:
 //   Main      — a locked panel around the (empty) companion disc, plus a scrolling column of everything else
@@ -262,7 +263,7 @@ function mainView() {
     <div class="topbar"></div>
     <div class="dials"></div>
     <div class="orbit">
-      <div class="companion" aria-label="Companion"></div>
+      <div class="companion pet-home" aria-label="Companion"></div>
       <div class="snap" tabindex="0" aria-label="More stats"><div class="snap-list"></div></div>
       <div class="snap-nav" role="group" aria-label="Sections"></div>
     </div>
@@ -374,7 +375,8 @@ function mainView() {
   // smooth instead of rows jumping sideways at the circle's top and bottom.
   const orbit = el.querySelector('.orbit')
   const companion = el.querySelector('.companion')
-  companion.append(pet.el)
+  // The squid's bowl is a glass helmet; the glass is drawn over the squid.
+  companion.append(pet.el, helmet())
   // Tapping the bowl releases bubbles. The scrolling list sits over the circle (masked out there), so the
   // tap is caught on the orbit and kept only when it lands inside the circle.
   orbit.addEventListener('pointerdown', (e) => {
@@ -457,14 +459,19 @@ function mainView() {
 // ------------------------------------------------------------------ view 2: spacewalk
 
 function spacewalkView() {
+  // The readings, then the suit floating in the space below them, wearing the companion's helmet.
   const el = h(`<div class="view view-eva">
-    <header class="eva-head">
-      <span class="eva-tag">EVA 3</span>
-      <span class="eva-clock">Elapsed <b id="eva-elapsed">02:14:08</b></span>
-    </header>
-    <div class="eva-tiles"></div>
-    <div class="eva-grid"></div>
+    <div class="eva-main">
+      <header class="eva-head">
+        <span class="eva-tag">EVA 3</span>
+        <span class="eva-clock">Elapsed <b id="eva-elapsed">02:14:08</b></span>
+      </header>
+      <div class="eva-tiles"></div>
+      <div class="eva-grid"></div>
+    </div>
+    <div class="eva-space"></div>
   </div>`)
+  el.querySelector('.eva-space').append(suit())
   el.querySelector('.eva-tiles').append(
     widget({ icon: 'gauge', accent: 'oxygen', parts: [dial('suitP', { band: [28.6, 30.6], sub: 'Suit kPa' })] }),
   )
@@ -574,6 +581,8 @@ function showView(i) {
   view = (i + VIEWS.length) % VIEWS.length
   host.replaceChildren(VIEWS[view].el)
   document.getElementById('view-now').textContent = VIEWS[view].name
+  // The squid goes with you: in its bowl on the main view, inside the suit's helmet on a spacewalk.
+  VIEWS[view].el.querySelector('.pet-home')?.prepend(pet.el)
 }
 document.getElementById('prev').addEventListener('click', () => showView(view - 1))
 document.getElementById('next').addEventListener('click', () => showView(view + 1))

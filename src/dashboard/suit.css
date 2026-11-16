@@ -1,0 +1,65 @@
+/* The companion's helmet (green outlines; strokes keep their width at any size) and its suit (flat
+   shapes, no outlines, two tones for volume). */
+.helmet, .suit-body { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.helmet * { vector-effect: non-scaling-stroke; fill: none; stroke: var(--phosphor); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+.hm-glass { stroke-opacity: 0.85; }
+.hm-glare { stroke-width: 3; stroke-opacity: 0.55; }
+.hm-glare.thin { stroke-width: 2; stroke-opacity: 0.4; }
+.hm-glint { fill: var(--phosphor); stroke: none; opacity: 0.7; }
+.hm-collar { fill: var(--card); }
+.helmet .hm-line { stroke-opacity: 0.7; }
+
+/* Suit colours, close to the background so the suit sits back and the squid and readings stand out:
+   a dark grey-green fabric, a darker underside, darker still for the backpack, hands and feet, and
+   faint phosphor for the belt and the spacewalk blue for the chest panel. The whole suit is mostly see-through, a shape in the
+   background more than a drawing. */
+.suit-body { --fabric: #3e4d46; --fabric-shade: #2f3b35; --gear: #253029; opacity: 0.32; }
+.st-noodle { fill: none; stroke: var(--fabric); stroke-width: 18; stroke-linecap: round; }
+.st-suit { fill: var(--fabric); }
+.st-shade { fill: var(--fabric-shade); }
+.st-light { fill: #fff; opacity: 0.08; }
+.st-pack, .st-gear { fill: var(--gear); }
+.st-ring { fill: var(--fabric-shade); }
+.st-ring-in { fill: #1c241f; }
+.st-belt { fill: var(--phosphor); }
+.st-panel { fill: var(--oxygen); } /* the spacewalk blue */
+.st-belt { opacity: 0.3; }
+.st-dot { fill: var(--ink); transform-box: fill-box; transform-origin: center; animation: suit-blink 4.6s infinite; }
+.st-dot + .st-dot { animation-delay: 0.04s; }
+.st-eyes { transition: transform 0.25s ease-out; }
+/* The panel lights blink now and then, like the squid. */
+@keyframes suit-blink { 0%, 93%, 100% { scale: 1 1; } 95.5% { scale: 1 0.1; } }
+.st-neck { fill: var(--fabric-shade); }
+.st-tether { fill: none; stroke: var(--phosphor); stroke-width: 2.5; stroke-linecap: round; stroke-dasharray: 2 7; opacity: 0.25; }
+/* Limbs sway gently about the shoulder or hip, each on its own rhythm. */
+.st-limb { transform-box: view-box; animation: sway 4s ease-in-out infinite alternate; }
+.arm-up { transform-origin: 170px 86px; --swing: -10deg; animation-duration: 3.2s; }
+.arm-down { transform-origin: 176px 126px; --swing: 9deg; }
+.leg-up { transform-origin: 250px 92px; --swing: -7deg; animation-duration: 4.6s; }
+.leg-down { transform-origin: 252px 120px; --swing: 6deg; animation-duration: 3.8s; }
+@keyframes sway { from { rotate: calc(var(--swing) * -0.5); } to { rotate: var(--swing); } }
+
+/* Spacewalk: the suit floats behind the readings, low and a little left of centre, falling slowly
+   backwards: head low, feet high, rocking a little further back and forth as it drifts. */
+.suit {
+  position: absolute; left: 40%; top: 74%; margin: 0; height: min(44vh, 380px); aspect-ratio: 400 / 220;
+  translate: -50% -50%; animation: drift 12s ease-in-out infinite;
+}
+@keyframes drift {
+  0%, 100% { transform: translate(0, 0) rotate(-12deg); }
+  35% { transform: translate(12px, -8px) rotate(-20deg); }
+  70% { transform: translate(-10px, 6px) rotate(-8deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .suit, .st-limb, .st-dot { animation: none; }
+  .suit { transform: rotate(-12deg); }
+}
+/* The helmet over the suit's left end (centre 80,106, radius 64 in the suit's 400 × 220 box), joined to
+   the neck ring on its right edge; its own collar is hidden. The squid moves in here on the spacewalk view. */
+.suit-helmet {
+  position: absolute; left: 4%; top: 19.1%; width: 32%; aspect-ratio: 1; border-radius: 50%;
+  background: color-mix(in srgb, var(--phosphor) 5%, var(--card));
+}
+.suit-helmet .hm-collar { display: none; }
+.suit-helmet .pet-bubble { display: none; } /* too small for its speech bubble; the readings say it */

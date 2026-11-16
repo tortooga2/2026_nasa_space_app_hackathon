@@ -108,7 +108,8 @@ body {
 .orbit { position: relative; min-height: 0; }
 .companion {
   position: absolute; border-radius: 50%;
-  background: color-mix(in srgb, var(--phosphor) 4%, var(--card)); box-shadow: inset 0 0 0 2px var(--line);
+  /* Glass: a faint green sheen toward the top left; the outline, glare and collar come from the helmet drawing. */
+  background: radial-gradient(circle at 34% 28%, color-mix(in srgb, var(--phosphor) 7%, transparent), transparent 55%), color-mix(in srgb, var(--phosphor) 3%, var(--card));
 }
 
 /* A list that turns like a dial, settling one row at a time beside the circle. The circle's area is
@@ -162,7 +163,12 @@ body {
 .compact .widget { gap: 5px; }
 
 /* ------------------------------------------------------------ spacewalk: the essentials, drawn larger */
-.view-eva { overflow-y: auto; padding: 40px 48px; display: grid; gap: 40px; align-content: start; }
+.view-eva { position: relative; overflow-y: auto; padding: 40px 48px; display: flex; flex-direction: column; gap: 40px; }
+/* The suit floats faintly behind the readings, low and a little left of centre. Its layer covers the
+   view and clips it, so it never makes the view scroll, and lets the pointer through. */
+.eva-space { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
+.eva-main { position: relative; z-index: 1; }
+.eva-main { display: grid; gap: 40px; align-content: start; min-width: 0; }
 
 .eva-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
 .eva-tag { font: 800 22px/1 var(--mono); color: var(--oxygen); }
@@ -266,6 +272,7 @@ body {
   .view-eva, .view-history { padding: 20px 16px; }
   .eva-tiles { grid-template-columns: repeat(2, 96px); justify-content: space-around; }
   .eva-grid { grid-template-columns: minmax(0, 1fr); }
+  .view-eva { min-height: 640px; }
   .hist-grid { grid-template-columns: minmax(0, 1fr); }
   .bottombar { grid-template-columns: minmax(0, 1fr); }
   .h-card.wide { grid-column: auto; }

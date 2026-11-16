@@ -49,6 +49,7 @@ import {
 } from 'lucide'
 import { card, usage, Readout, Meter, Radial, Trace, Log, startAlertBeat } from './components.js'
 import { createSquid } from '../dashboard/squid.js'
+import { helmet } from '../dashboard/suit.js'
 
 // ------------------------------------------------------------------ sample signals
 
@@ -351,7 +352,7 @@ const companions = [
   const sq = createSquid({ reduced })
   sq.setMood(mood, hint, more, detail)
   const bowl = c.querySelector('.bowl')
-  bowl.append(sq.el)
+  bowl.append(sq.el, helmet())
   bowl.addEventListener('pointerdown', (e) => sq.fizz(e.clientX, e.clientY))
   live.push(sq)
   return c
