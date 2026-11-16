@@ -132,13 +132,13 @@ export function createFlows({ STATS, h, mount, onResult, onOpen }) {
 
   function bpmResult(bpm) {
     const s = STATS.hr
-    const side = bpm < s.warnLo ? 'low' : bpm > s.warnHi ? 'high' : null
+    const side = bpm <= s.warnLo ? 'low' : bpm > s.warnHi ? 'high' : null
     const tone = side ? 'crit' : 'ok'
     results.bpm = { tone, label: `${bpm} bpm`, side }
     const head = side ? `Heart rate ${side} · ${bpm} bpm` : `Average · ${bpm} bpm`
-    const text = side ? ADVICE[side === 'high' ? 'hrHigh' : 'hrLow'] : 'Logged. Within the normal 50–100 bpm range.'
+    const text = side ? ADVICE[side === 'high' ? 'hrHigh' : 'hrLow'] : 'Logged. Within the normal 60–100 bpm resting range.'
     // Mildly out of range makes the companion sad; far out (the red zone) makes it distressed.
-    const mood = !side ? null : bpm < s.critLo || bpm > s.critHi ? 'bad' : 'low'
+    const mood = !side ? null : bpm <= s.critLo || bpm > s.critHi ? 'bad' : 'low'
     onResult('bpm', { tone, mood, value: bpm, hint: side ? `Heart rate ${side}` : '', detail: `${bpm} bpm`, warning: side ? `${head}. ${text}` : '' })
     show(C_STEPS, 0, `${verdict(tone, head, text)}<button type="button" class="flow-primary" data-next>Next: blood pressure</button>`)
     body.querySelector('[data-next]').addEventListener('click', bpMeasure)

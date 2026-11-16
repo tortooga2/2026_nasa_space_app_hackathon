@@ -50,6 +50,7 @@ import { widget, Readout, Meter, Radial, Trace, Log, startAlertBeat } from '../d
 import { createSquid } from './squid.js'
 import { createFlows } from './flows.js'
 import { helmet, suit } from './suit.js'
+import NASA from '../data/thresholds.json'
 
 // Companion dashboard, three views cycled with the arrows under the stage:
 //   Main      — a locked panel around the (empty) companion disc, plus a scrolling column of everything else
@@ -71,12 +72,12 @@ const STATS = {
   resp: { label: 'Breathing rate', group: 'Vitals', unit: '/min', min: 4, max: 40, step: 1, vary: [12, 16], critLo: 8, warnLo: 10, warnHi: 20, critHi: 28 },
   bpSys: { label: 'BP systolic', group: 'Vitals', unit: 'mmHg', min: 80, max: 200, step: 1, value: 118, warnHi: 129, critHi: 139 },
   bpDia: { label: 'BP diastolic', group: 'Vitals', unit: 'mmHg', min: 40, max: 130, step: 1, value: 76 },
-  glucose: { label: 'Glucose', group: 'Vitals', unit: 'mg/dL', min: 40, max: 300, step: 1, vary: [96, 108], critLo: 54, warnLo: 70, warnHi: 180, critHi: 250 },
+  glucose: { label: 'Glucose', group: 'Vitals', unit: 'mg/dL', min: 40, max: 300, step: 1, vary: [88, 97], critLo: 54, warnLo: 70, warnHi: 180, critHi: 250 },
   // Daily
-  sleep: { label: 'Sleep', group: 'Daily', unit: 'h', min: 0, max: 10, step: 0.1, value: 6.4, critLo: 4, warnLo: 6 },
+  sleep: { label: 'Sleep', group: 'Daily', unit: 'h', min: 0, max: 10, step: 0.1, value: 7.2, critLo: 4, warnLo: 6 },
   exercise: { label: 'Exercise', group: 'Daily', unit: 'h', min: 0, max: 3, step: 0.1, value: 1.6, warnLo: 0.5 },
   water: { label: 'Water', group: 'Daily', unit: 'L', min: 0, max: 3, step: 0.05, value: 1.9, critLo: 0.75, warnLo: 1.25 },
-  kcal: { label: 'Energy intake', group: 'Daily', unit: 'kcal', min: 0, max: 3500, step: 10, value: 2150, critLo: 1200, warnLo: 1800 },
+  kcal: { label: 'Energy intake', group: 'Daily', unit: 'kcal', min: 0, max: 3500, step: 10, value: 2350, critLo: 1200, warnLo: 1800 },
   mood: { label: 'Mood', group: 'Daily', unit: '/ 5', min: 1, max: 5, step: 1, value: 4, critLo: 1, warnLo: 2 },
   cycleDay: { label: 'Cycle day', group: 'Daily', unit: '', min: 1, max: 28, step: 1, value: 12 },
   bodyMass: { label: 'Body mass', group: 'Daily', unit: 'kg', min: 55, max: 90, step: 0.1, value: 71.8, critLo: 65, warnLo: 68 },
@@ -84,14 +85,14 @@ const STATS = {
   reaction: { label: 'Reaction time', group: 'Daily', unit: 'ms', min: 180, max: 400, step: 1, value: 268, warnHi: 300, critHi: 340 },
   vo2: { label: 'VO₂ max', group: 'Daily', unit: 'mL/kg/min', min: 25, max: 55, step: 0.5, value: 39.5, critLo: 30, warnLo: 35 },
   // Cabin
-  co2: { label: 'Cabin CO₂', group: 'Cabin', unit: 'mmHg', min: 0, max: 10, step: 0.1, value: 2.6, warnHi: 3, critHi: 5.3 },
+  co2: { label: 'Cabin CO₂', group: 'Cabin', unit: 'mmHg', min: 0, max: 10, step: 0.1, value: 2.1, warnHi: 3, critHi: 5.3 },
   cabinP: { label: 'Cabin pressure', group: 'Cabin', unit: 'kPa', min: 90, max: 110, step: 0.1, value: 101.3, critLo: 96, warnLo: 99, warnHi: 103, critHi: 105 },
   cabinO2: { label: 'Cabin O₂', group: 'Cabin', unit: 'kPa', min: 14, max: 30, step: 0.1, value: 21.2, critLo: 17, warnLo: 19.5, warnHi: 23.1, critHi: 25 },
   gravity: { label: 'Gravity', group: 'Cabin', unit: 'g', min: 0, max: 1.2, step: 0.01, value: 0.38 },
   lux: { label: 'Light', group: 'Cabin', unit: 'lux', min: 0, max: 3000, step: 10, value: 1840 },
   pm25: { label: 'Air particulate', group: 'Cabin', unit: 'µg/m³', min: 0, max: 60, step: 1, value: 8, warnHi: 15, critHi: 35 },
   kpG: { label: 'Geomagnetic', group: 'Cabin', unit: 'G', min: 0, max: 5, step: 1, value: 2, warnHi: 2, critHi: 3 },
-  kpS: { label: 'Solar radiation', group: 'Cabin', unit: 'S', min: 0, max: 5, step: 1, value: 1, warnHi: 2, critHi: 3 },
+  kpS: { label: 'Solar radiation', group: 'Cabin', unit: 'S', min: 0, max: 5, step: 1, value: 0, warnHi: 2, critHi: 3 },
   kpR: { label: 'Radio blackout', group: 'Cabin', unit: 'R', min: 0, max: 5, step: 1, value: 0, warnHi: 2, critHi: 3 },
   radiation: { label: 'Career dose', group: 'Cabin', unit: 'mSv', min: 0, max: 700, step: 1, value: 182, warnHi: 450, critHi: 600 },
   noise: { label: 'Noise', group: 'Cabin', unit: 'dBA', min: 30, max: 100, step: 1, vary: [52, 58], warnHi: 60, critHi: 72 },
@@ -99,8 +100,20 @@ const STATS = {
   suitP: { label: 'Suit pressure', group: 'Spacewalk', unit: 'kPa', min: 26, max: 33, step: 0.1, value: 29.6, critLo: 27.5, warnLo: 28.6, warnHi: 30.6, critHi: 31.5 },
   evaTime: { label: 'Time remaining', group: 'Spacewalk', unit: 'h', min: 0, max: 8, step: 0.1, value: 3.1, critLo: 0.5, warnLo: 1 },
   suitO2: { label: 'Suit O₂', group: 'Spacewalk', unit: '%', min: 0, max: 100, step: 1, value: 64, critLo: 25, warnLo: 40 },
-  helmetCo2: { label: 'Helmet CO₂', group: 'Spacewalk', unit: 'mmHg', min: 0, max: 10, step: 0.1, vary: [1.6, 2.2], warnHi: 3, critHi: 5.3 },
+  helmetCo2: { label: 'Helmet CO₂', group: 'Spacewalk', unit: 'mmHg', min: 0, max: 10, step: 0.1, vary: [1.2, 1.7], warnHi: 3, critHi: 5.3 },
   metabolic: { label: 'Metabolic rate', group: 'Spacewalk', unit: 'kJ/h', min: 400, max: 2500, step: 10, vary: [1100, 1300], warnHi: 1800, critHi: 2200 },
+}
+// NASA-based limits (src/data/thresholds.json, compiled from NASA-STD-3001 and related sources) replace
+// the defaults above wherever the NASA data gives a number. A limit it has no number for keeps its
+// default, and each stat keeps where its limits come from (basis, pages, notes, gaps) for the debug menu.
+for (const [id, src] of Object.entries(NASA.stats)) {
+  const s = STATS[id]
+  if (!s) continue
+  s.ref = src
+  for (const k of ['critLo', 'warnLo', 'warnHi', 'critHi']) if (k in src) s[k] = src[k]
+  // A kept default can't sit outside a NASA critical limit, or its caution band would never show.
+  if (s.critLo != null && s.warnLo != null && s.warnLo < s.critLo) s.warnLo = s.critLo
+  if (s.critHi != null && s.warnHi != null && s.warnHi > s.critHi) s.warnHi = s.critHi
 }
 for (const s of Object.values(STATS)) {
   s.digits = String(s.step).split('.')[1]?.length ?? 0
@@ -188,7 +201,7 @@ function heartRate() {
   live.push(tr)
   return widget({ icon: 'heart-pulse', accent: 'pulse', parts: [ro, tr] })
 }
-const tempTuner = () => meter('coreTemp', { min: 35, max: 39.5, tuner: { major: 1, minor: 1 }, target: [36.1, 37.2], label: 'Core', scale: ['35', '37', '39.5'] })
+const tempTuner = () => meter('coreTemp', { min: 35, max: 39.5, tuner: { major: 1, minor: 1 }, target: [36.5, 37.3], label: 'Core', scale: ['35', '37', '39.5'] })
 
 // A widget with a small caption above it, for the scrolling column and the spacewalk view.
 const item = (title, el) => {
@@ -294,8 +307,8 @@ function mainView() {
 
   // Bottom bar: the cabin exposures that matter over a mission, not a minute.
   el.querySelector('.bottombar').append(
-    widget({ icon: 'cloud', accent: 'phosphor', parts: [meter('co2', { max: 8, markers: [{ at: 3, label: 'Goal' }, { at: 5.3, label: 'Limit' }], scale: ['0', '8'] })] }),
-    widget({ icon: 'radiation', accent: 'rad', parts: [meter('radiation', { max: 600, markers: [{ at: 600, label: '' }], scale: ['0', '600 limit'] })] }),
+    widget({ icon: 'cloud', accent: 'phosphor', parts: [meter('co2', { max: 6, markers: [{ at: 3, label: 'Limit' }], scale: ['0', '6'] })] }),
+    widget({ icon: 'radiation', accent: 'rad', parts: [meter('radiation', { max: 600, markers: [{ at: 480, label: '80%' }], scale: ['0', '600'] })] }),
     widget({ icon: 'volume-2', accent: 'phosphor', parts: [meter('noise', { max: 90, segments: 12, scale: ['30', '60', '90'] })] }),
   )
 
@@ -322,7 +335,7 @@ function mainView() {
       item('Air particulate', widget({ icon: 'cloud-fog', accent: 'phosphor', parts: [meter('pm25', { segments: 6, scale: ['Good', 'Hazard'] })] })),
       item('Pressure · O₂ · gravity · light', tileRow(
         dialTile('cabinP', 'gauge', 'signal', { min: 95, max: 106, band: [99, 103], sub: 'kPa' }),
-        dialTile('cabinO2', 'circle-gauge', 'oxygen', { min: 15, max: 28, band: [19.5, 23.1], sub: 'kPa O₂' }),
+        dialTile('cabinO2', 'circle-gauge', 'oxygen', { min: 15, max: 28, band: [19.7, 23.8], sub: 'kPa O₂' }),
         dialTile('gravity', 'arrow-down-to-line', 'signal', { sub: 'g' }),
         dialTile('lux', 'sun', 'rad', {
       mode: 'segments', min: 0, max: 24, at: 14.5,
@@ -474,12 +487,12 @@ function spacewalkView() {
   </div>`)
   el.querySelector('.eva-space').append(suit())
   el.querySelector('.eva-tiles').append(
-    widget({ icon: 'gauge', accent: 'oxygen', parts: [dial('suitP', { band: [28.6, 30.6], sub: 'Suit kPa' })] }),
+    widget({ icon: 'gauge', accent: 'oxygen', parts: [dial('suitP', { band: [27.9, 31.3], sub: 'Suit kPa' })] }),
   )
   el.querySelector('.eva-grid').append(
     item('Time remaining', widget({ icon: 'timer', accent: 'oxygen', parts: [meter('evaTime', { markers: [{ at: 1, label: 'Walk-back' }], scale: ['0', '8'] })] })),
     item('Suit O₂', widget({ icon: 'wind', accent: 'oxygen', parts: [meter('suitO2', { markers: [{ at: 25, label: 'Return' }, { at: 40, label: 'Low' }] })] })),
-    item('Helmet CO₂', widget({ icon: 'cloud', accent: 'phosphor', parts: [meter('helmetCo2', { max: 8, markers: [{ at: 5.3, label: 'Limit' }], scale: ['0', '8'] })] })),
+    item('Helmet CO₂', widget({ icon: 'cloud', accent: 'phosphor', parts: [meter('helmetCo2', { max: 20, markers: [{ at: 2, label: 'Inlet' }, { at: 15, label: 'Limit' }], scale: ['0', '20'] })] })),
     item('Core temp', widget({ icon: 'thermometer', accent: 'thermal', parts: [tempTuner()] })),
     item('Heart rate', heartRate()),
     item('Metabolic rate', widget({ icon: 'activity', accent: 'pulse', parts: [readout('metabolic'), Trace({ mode: 'line', data: walk(40, 900, 120, 11, 700, 1300), min: 500, max: 1600 })] })),
@@ -779,10 +792,26 @@ function applyPreset(name) {
   syncDebug()
 }
 
+// Where a stat's limits come from: NASA-sourced, partly sourced (some limits kept as defaults), or not
+// in the NASA data at all. Opens to the notes and gaps.
+const BASIS = { sourced: 'NASA', partial: 'NASA (partial)', none: 'No NASA number' }
+const esc = (t) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;')
+function sourceNote(s) {
+  const r = s.ref
+  if (!r) return ''
+  const limits = ['critLo', 'warnLo', 'warnHi', 'critHi'].filter((k) => k in r).map((k) => `${k} ${r[k]}`).join(' · ')
+  return `<details class="dbg-src" data-basis="${r.basis}">
+    <summary><b>${BASIS[r.basis]}</b>${r.pages.length ? ` · p. ${r.pages.join(', ')}` : ''}</summary>
+    ${limits ? `<p class="dbg-limits">${limits}</p>` : ''}
+    <p>${esc(r.notes)}</p>
+    ${r.gaps.length ? `<ul>${r.gaps.map((g) => `<li>${esc(g)}</li>`).join('')}</ul>` : ''}
+  </details>`
+}
 const debug = h(`<aside class="debug" id="debug" aria-label="Debug" hidden>
   <header><h2 class="sec-head">Debug</h2><button type="button" class="dbg-close" aria-label="Close debug"><i data-lucide="x"></i></button></header>
   <label class="dbg-switch"><input type="checkbox" id="frame-flash"> Flash frame on alerts</label>
   <div class="dbg-presets">${Object.keys(PRESETS).map((n) => `<button type="button" data-preset="${n}">${n}</button>`).join('')}</div>
+  <p class="dbg-caveat">Limits: ${esc(NASA.caveat)} Source: ${esc(NASA.source.split(' (')[0])}.</p>
   <div class="dbg-body"></div>
 </aside>`)
 const range = (id, which, v) => {
@@ -798,6 +827,7 @@ debug.querySelector('.dbg-body').innerHTML = groups.map((g) => `<section><h3>${g
     ${s.vary
       ? `<div class="dbg-range"><span>Low</span>${range(id, 'lo', s.vary[0])}<b data-lo></b><span>High</span>${range(id, 'hi', s.vary[1])}<b data-hi></b></div>`
       : `<div class="dbg-range single">${range(id, 'value', s.value)}</div>`}
+    ${sourceNote(s)}
   </div>`).join('')}</section>`).join('')
 document.body.append(debug)
 createIcons({ icons: { X }, attrs: { 'stroke-width': 2.25 } })

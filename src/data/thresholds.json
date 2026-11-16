@@ -1,0 +1,363 @@
+{
+  "schemaVersion": 1,
+  "title": "NASA-based STATS thresholds",
+  "howToUse": "Keys match the dashboard STATS ids and threshold names. Merge only critLo / warnLo / warnHi / critHi into STATS. A key that is missing here means the NASA data has no number for it (see gaps).",
+  "rule": "Same as the dashboard zones: value <= critLo = crit; <= warnLo = warn; <= warnHi = ok; <= critHi = warn; above critHi = crit.",
+  "source": "src/data/references/ALL_THE_DATA_SETS.pdf (compilation page numbers in pages).",
+  "caveat": "Demo use only. Earth clinical norms and NASA habitat limits as summarized in a compilation; not validated crew alert rules. Confirm the current NASA-STD-3001 revision before relying on them.",
+  "stats": {
+    "hr": {
+      "label": "Heart rate",
+      "unit": "bpm",
+      "warnLo": 59,
+      "warnHi": 100,
+      "critHi": 140,
+      "basis": "partial",
+      "pages": [108, 106],
+      "notes": "Normal resting 60-100; flag when routinely below 60 or above 100 (p108). Above 140 bpm is the EVA performance-impairment marker (p106).",
+      "gaps": [
+        "critLo: no NASA low heart-rate limit.",
+        "critHi 140 comes from EVA thermal context, not a resting limit."
+      ]
+    },
+    "spo2": {
+      "label": "SpO₂",
+      "unit": "%",
+      "basis": "none",
+      "pages": [108],
+      "notes": "The compilation only says to record SpO₂ \"if available\".",
+      "gaps": ["No SpO₂ number anywhere in the NASA data. Keep the existing thresholds."]
+    },
+    "coreTemp": {
+      "label": "Core temp",
+      "unit": "°C",
+      "critLo": 34.9,
+      "warnLo": 36.4,
+      "warnHi": 37.3,
+      "critHi": 38,
+      "basis": "sourced",
+      "pages": [106],
+      "notes": "Clinical normal 36.5-37.3; fever above 38; hypothermia below 35.",
+      "gaps": ["In-flight core temp rose ~1 °C over ~75 days in one ISS study, so a healthy astronaut may read as caution."]
+    },
+    "resp": {
+      "label": "Breathing rate",
+      "unit": "/min",
+      "critLo": 11,
+      "warnHi": 18,
+      "critHi": 25,
+      "basis": "sourced",
+      "pages": [108],
+      "notes": "Normal 12-18 at rest; raise if under 12 or over 25.",
+      "gaps": ["No NASA-specific respiratory standard; these are Earth clinical norms (the compilation says so)."]
+    },
+    "bpSys": {
+      "label": "BP systolic",
+      "unit": "mmHg",
+      "warnLo": 90,
+      "warnHi": 119,
+      "critHi": 129,
+      "basis": "sourced",
+      "pages": [108],
+      "notes": "Under 120 normal; 130 or higher is high; 90 or lower is low if symptomatic.",
+      "gaps": [
+        "critLo: no low-BP danger number.",
+        "Source lists hypertensive crisis as \"diastolic above 90\", flagged as an error and not used."
+      ]
+    },
+    "bpDia": {
+      "label": "BP diastolic",
+      "unit": "mmHg",
+      "warnLo": 60,
+      "warnHi": 79,
+      "critHi": 79,
+      "basis": "sourced",
+      "pages": [108],
+      "notes": "Under 80 normal; 80 or higher is high; 60 or lower is low if symptomatic. The source has no in-between band above 80, so 80+ goes straight to critical.",
+      "gaps": ["critLo: no low-BP danger number."]
+    },
+    "glucose": {
+      "label": "Glucose",
+      "unit": "mg/dL",
+      "critLo": 53,
+      "warnLo": 69,
+      "warnHi": 99,
+      "critHi": 125,
+      "basis": "sourced",
+      "pages": [107],
+      "notes": "Fasting: normal 99 or below, prediabetes 100-125, diabetes 126+ (refer to flight surgeon). Under 70 is low; under 54 is the CGM level-2 low.",
+      "gaps": [
+        "These are FASTING cutoffs. After meals healthy values exceed 99, so a 24 h trace will show caution often.",
+        "CGM targets are for people with diabetes; NIH gives none for healthy crew."
+      ]
+    },
+    "sleep": {
+      "label": "Sleep",
+      "unit": "h",
+      "critLo": 5.9,
+      "warnLo": 6.9,
+      "basis": "sourced",
+      "pages": [6, 7, 8],
+      "notes": "7+ h (AASM), NASA standard 8 h opportunity. About a week at 5-6 h impaired performance; in-flight averages were 6-6.5 h.",
+      "gaps": ["Hours alone; NASA prefers measured sleep vs. opportunity, which the app does not separate."]
+    },
+    "exercise": {
+      "label": "Exercise",
+      "unit": "h",
+      "warnLo": 1.2,
+      "basis": "partial",
+      "pages": [27],
+      "notes": "ISS crews do about 1.25 h/day of actual exercise (2.5 h scheduled incl. changing and hygiene).",
+      "gaps": [
+        "critLo: no NASA minimum below which exercise is \"bad\".",
+        "The tile goal of 2.5 h is scheduled time, not active exercise."
+      ]
+    },
+    "water": {
+      "label": "Water",
+      "unit": "L",
+      "basis": "none",
+      "pages": [2, 16, 18, 106],
+      "notes": "Related figures exist but none is a daily drinking target: 2.5-3 L/day is urine output, 240 mL/h is EVA-only, 15 mL/kg is pre-landing fluid loading.",
+      "gaps": ["No daily water-intake threshold in the NASA data. Keep the existing thresholds."]
+    },
+    "kcal": {
+      "label": "Energy intake",
+      "unit": "kcal",
+      "warnLo": 2290,
+      "basis": "partial",
+      "pages": [12, 14, 16],
+      "notes": "Standard ISS menu is about 2,300-2,400 kcal/day; crews eating ~80% of need lost ~5% body mass.",
+      "gaps": [
+        "critLo: NASA ties harm to 30 kcal per kg LEAN mass per day, which needs body composition the app does not have.",
+        "Individual requirement varies; core temp +1 °C adds ~350 kcal/day."
+      ]
+    },
+    "mood": {
+      "label": "Mood",
+      "unit": "/ 5",
+      "basis": "none",
+      "pages": [11],
+      "notes": "The 1-5 scale is invented; NASA reports only the direction of stress across crews.",
+      "gaps": ["No mood threshold. Keep the existing thresholds."]
+    },
+    "cycleDay": {
+      "label": "Cycle day",
+      "unit": "",
+      "basis": "none",
+      "pages": [109],
+      "notes": "Compilation: no validated in-flight cycle prediction; label as background only.",
+      "gaps": ["No thresholds (none existed either)."]
+    },
+    "bodyMass": {
+      "label": "Body mass",
+      "unit": "kg",
+      "critLo": 67.3,
+      "warnLo": 70.5,
+      "basis": "partial",
+      "pages": [14, 16],
+      "notes": "Converted from % loss at a 73 kg baseline: 3.3% loss = 70.59 kg, 7.7% loss = 67.38 kg. Military data cited by NASA links 3.3-7.7% loss to performance decline, with large decline above 7.7%.",
+      "gaps": [
+        "Military, not astronaut, data.",
+        "Values must be recalculated if the crew member's preflight mass is not 73 kg (use % of day-0 mass)."
+      ]
+    },
+    "vision": {
+      "label": "Vision shift",
+      "unit": "D",
+      "critLo": -0.75,
+      "basis": "partial",
+      "pages": [49],
+      "notes": "SANS research definition: a refraction shift of 0.75 D or more from baseline.",
+      "gaps": [
+        "Sign: the source describes a positive (hyperopic) shift; this keeps the dashboard's existing negative convention.",
+        "warnLo: no smaller \"early\" shift defined."
+      ]
+    },
+    "reaction": {
+      "label": "Reaction time",
+      "unit": "ms",
+      "critHi": 500,
+      "basis": "partial",
+      "pages": [8],
+      "notes": "The psychomotor vigilance task counts any single response over 500 ms as a lapse.",
+      "gaps": ["warnHi: no mean reaction-time cutoff in the data; 500 ms is a per-response lapse definition, so it is lenient for an average."]
+    },
+    "vo2": {
+      "label": "VO₂ max",
+      "unit": "mL/kg/min",
+      "critLo": 32.5,
+      "basis": "partial",
+      "pages": [21, 22],
+      "notes": "NASA-STD-3001 minimum preflight aerobic capacity is 32.9 mL/kg/min.",
+      "gaps": [
+        "The report says 32.9 \"may need careful review\" for Moon/Mars.",
+        "warnLo: only a ±3% measurement-error band around preflight, not a caution level."
+      ]
+    },
+    "co2": {
+      "label": "Cabin CO₂",
+      "unit": "mmHg",
+      "warnHi": 2.4,
+      "critHi": 3,
+      "basis": "sourced",
+      "pages": [101],
+      "notes": "Under 2.5 mmHg (7-day average) keeps headache risk under 1%; the cabin limit is 3 mmHg (1 h average).",
+      "gaps": ["The app shows a daily snapshot, not the 1 h or 7-day averages the limits are written for."]
+    },
+    "cabinP": {
+      "label": "Cabin pressure",
+      "unit": "kPa",
+      "critLo": 34.4,
+      "warnLo": 34.4,
+      "warnHi": 103,
+      "critHi": 103,
+      "basis": "sourced",
+      "pages": [103],
+      "notes": "Allowed habitable total pressure 34.5-103 kPa (5.0-15.0 psia). ISS runs at 101.3.",
+      "gaps": ["No caution band: pressure only matters together with O₂, which cabinO2 below handles."]
+    },
+    "cabinO2": {
+      "label": "Cabin O₂",
+      "unit": "kPa",
+      "critLo": 17.3,
+      "warnLo": 19.7,
+      "warnHi": 23.8,
+      "critHi": 47.3,
+      "basis": "sourced",
+      "pages": [104],
+      "notes": "Converted from inspired O₂ (PIO2) limits to the dashboard's dry ppO₂ at 101.3 kPa cabin pressure: PIO2 122 mmHg (absolute limit) = 17.34 kPa, normoxic 139-168 mmHg = 19.75-23.87 kPa, hyperoxia 333 mmHg = 47.3 kPa.",
+      "gaps": [
+        "Conversion is only exact at 101.3 kPa; at other pressures recompute with dry = PIO2 x P/(P-47).",
+        "PIO2 under 127 mmHg also needs a health-monitoring plan; folded into caution here.",
+        "The ECLSS brief gives a narrower 145-155 mmHg target."
+      ]
+    },
+    "gravity": {
+      "label": "Gravity",
+      "unit": "g",
+      "basis": "none",
+      "pages": [],
+      "notes": "Not a health reading.",
+      "gaps": ["No thresholds (none existed either)."]
+    },
+    "lux": {
+      "label": "Light",
+      "unit": "lux",
+      "warnLo": 99,
+      "basis": "partial",
+      "pages": [8, 105],
+      "notes": "Nominal 100-300 lux; 500 lux for reading; over 1,000 lux for high-precision work; 20 lux at night.",
+      "gaps": [
+        "Right level depends on activity and time of day; no single upper limit.",
+        "NASA circadian lighting table (V2 8055) is not public."
+      ]
+    },
+    "pm25": {
+      "label": "Air particulate",
+      "unit": "µg/m³",
+      "warnHi": 999,
+      "critHi": 999,
+      "basis": "sourced",
+      "pages": [104],
+      "notes": "NASA respirable-dust limit is under 1 mg/m³ (= 1000 µg/m³).",
+      "gaps": ["NASA has no caution level, and its limit is far looser than Earth air-quality guidance (the old 15/35 values)."]
+    },
+    "kpG": {
+      "label": "Geomagnetic",
+      "unit": "G",
+      "basis": "none",
+      "pages": [109],
+      "notes": "The NASA data covers only the S (solar radiation) scale.",
+      "gaps": ["No G-scale thresholds. Keep the existing thresholds."]
+    },
+    "kpS": {
+      "label": "Solar radiation",
+      "unit": "S",
+      "warnHi": 0,
+      "critHi": 2,
+      "basis": "sourced",
+      "pages": [109, 110],
+      "notes": "NOAA: S1-S2 have no effect on astronauts; S3 = radiation-hazard avoidance recommended on EVA; S4-S5 = unavoidable hazard on EVA. A storm starts at S1.",
+      "gaps": []
+    },
+    "kpR": {
+      "label": "Radio blackout",
+      "unit": "R",
+      "basis": "none",
+      "pages": [109],
+      "notes": "The NASA data covers only the S scale.",
+      "gaps": ["No R-scale thresholds. Keep the existing thresholds."]
+    },
+    "radiation": {
+      "label": "Career dose",
+      "unit": "mSv",
+      "warnHi": 479,
+      "critHi": 599,
+      "basis": "sourced",
+      "pages": [96, 99],
+      "notes": "NASA career limit 600 mSv (waiver required at or above). 80% of the limit (480 mSv) as a planning warning.",
+      "gaps": ["The 480 mSv warning was suggested by the compilation author, not NASA."]
+    },
+    "noise": {
+      "label": "Noise",
+      "unit": "dBA",
+      "warnHi": 70,
+      "critHi": 84,
+      "basis": "sourced",
+      "pages": [102, 103],
+      "notes": "Normal ops: about 70 dBA averaged over 24 h. Any reading at or above 85 dBA is flagged.",
+      "gaps": ["The app value is a representative level, not a 24 h noise dose."]
+    },
+    "suitP": {
+      "label": "Suit pressure",
+      "unit": "kPa",
+      "critLo": 27.9,
+      "warnLo": 27.9,
+      "warnHi": 31.3,
+      "critHi": 31.3,
+      "basis": "sourced",
+      "pages": [81, 104],
+      "notes": "EMU nominal 4.3 psia (29.65 kPa); flag drift over 0.25 psi (1.72 kPa), i.e. outside 27.92-31.37 kPa.",
+      "gaps": [
+        "Only valid for the 4.3 psia EMU; exploration suits run 3.8-8.2 psia.",
+        "No caution band, only the drift flag."
+      ]
+    },
+    "evaTime": {
+      "label": "Time remaining",
+      "unit": "h",
+      "basis": "none",
+      "pages": [78, 81],
+      "notes": "EVA reports discuss consumable margins but give no remaining-time limit.",
+      "gaps": ["No thresholds in the data. Keep the existing thresholds."]
+    },
+    "suitO2": {
+      "label": "Suit O₂",
+      "unit": "%",
+      "basis": "none",
+      "pages": [78],
+      "notes": "Apollo context only: 6 EVAs ended with under 10% usable O₂, cited as thin margins, not a limit.",
+      "gaps": ["No suit O₂ threshold. Keep the existing thresholds."]
+    },
+    "helmetCo2": {
+      "label": "Helmet CO₂",
+      "unit": "mmHg",
+      "warnHi": 1.9,
+      "critHi": 15,
+      "basis": "sourced",
+      "pages": [101],
+      "notes": "Suit inlet under 2 mmHg; suit nominal 3-15 mmHg; contingency limit 20 mmHg inspired for up to 1 h.",
+      "gaps": ["Treats anything past the 15 mmHg nominal ceiling as critical; 20 mmHg is the absolute contingency cap."]
+    },
+    "metabolic": {
+      "label": "Metabolic rate",
+      "unit": "kJ/h",
+      "critHi": 2110.0,
+      "basis": "partial",
+      "pages": [78, 82],
+      "notes": "Flag against the 2,000 BTU/h suit cooling limit (= 2110 kJ/h). Apollo EVA rates were 780-1,200 BTU/h (823-1266 kJ/h).",
+      "gaps": ["warnHi: no caution level; only the cooling limit."]
+    }
+  }
+}

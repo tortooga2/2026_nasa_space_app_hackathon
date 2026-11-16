@@ -472,6 +472,19 @@ body {
 .dbg-range.single { grid-template-columns: minmax(0, 1fr); }
 .dbg-range b { font-weight: 700; color: var(--text); text-align: right; font-variant-numeric: tabular-nums; }
 .dbg-range input { width: 100%; accent-color: var(--phosphor); }
+/* Where each stat's limits come from (src/data/thresholds.json). */
+.dbg-caveat { margin: 0; font: 500 var(--fs-1)/1.5 var(--mono); color: var(--dim); }
+.dbg-src { grid-column: 1 / -1; font: 500 var(--fs-1)/1.5 var(--mono); color: var(--muted); }
+.dbg-src summary { cursor: pointer; list-style: none; }
+.dbg-src summary::-webkit-details-marker { display: none; }
+.dbg-src summary::before { content: '▸ '; color: var(--dim); }
+.dbg-src[open] summary::before { content: '▾ '; }
+.dbg-src summary b { font-weight: 800; color: var(--phosphor); }
+.dbg-src[data-basis="partial"] summary b { color: var(--rad); }
+.dbg-src[data-basis="none"] summary b { color: var(--dim); }
+.dbg-src p { margin: 6px 0 0; }
+.dbg-src .dbg-limits { color: var(--text); font-variant-numeric: tabular-nums; }
+.dbg-src ul { margin: 6px 0 0; padding-left: 16px; color: var(--dim); }
 @media (max-width: 640px) {
   .debug { inset: 8px; width: auto; }
 }
