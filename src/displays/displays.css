@@ -29,6 +29,15 @@
   --gap-left: 3px;
   --r: 3px;
   --row: 28px; /* panel height for non-bar widgets: one bar plus a hair */
+  --scale-strip: 12px; /* the thicker top strip on bars that carry scale numbers */
+  /* alerts: amber for caution, red for warning */
+  --caution: #ffb000;
+  --warning: #ff2d2d;
+  /* one type scale, four sizes: labels, body, values, clock */
+  --fs-1: 10px;
+  --fs-2: 13px;
+  --fs-3: 20px;
+  --fs-4: 44px;
 }
 
 * { box-sizing: border-box; }
@@ -76,6 +85,12 @@ h2 { font: 800 20px/1 var(--mono); margin: 0; }
 .card.span-2 .card-body { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 16px; align-items: end; }
 .card.span-2 .card-body > .log, .card.span-2 .card-body > .note { grid-column: 1 / -1; }
 
+.card header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+/* The companion's bowl on its kit card. */
+.bowl {
+  position: relative; width: 100%; max-width: 260px; aspect-ratio: 1; justify-self: center; border-radius: 50%;
+  background: color-mix(in srgb, var(--phosphor) 4%, var(--card)); box-shadow: inset 0 0 0 2px var(--line);
+}
 .card header h3 { margin: 0; font: 700 12px/1.2 var(--mono); letter-spacing: 0.1em; text-transform: uppercase; }
 .card-body { display: grid; gap: 10px; min-width: 0; }
 .card footer { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; border-top: 1px dashed var(--line); padding-top: 10px; }
@@ -94,26 +109,39 @@ h2 { font: 800 20px/1 var(--mono); margin: 0; }
 .blk-body { border-top: var(--strip-h, var(--strip)) solid var(--c); border-top-right-radius: var(--r); padding: var(--gap-top) 0 0 var(--gap-left); min-width: 0; display: grid; }
 .panel { background: var(--c); color: var(--fg); border-bottom-right-radius: var(--r); min-width: 0; }
 
-/* ------------------------------------------------------------ warning lamp
-   Flashes in place of the widget's icon, like a dashboard telltale.
-   Warning: the icon swaps to a warning triangle, nothing else changes.
-   Bad: a small red rectangle sits centred on the tab, over the icon, with the triangle inside it.
-   The tab and the rest of the widget keep their colours. */
+/* ------------------------------------------------------------ alerts
+   A widget at caution (amber) or warning (red) flashes between its own colours and an inverted block of
+   the alert colour: what was drawn in the metric colour (tab, strip, fill, ticks, ring) turns dark, and
+   what was dark (the empty track, notches, gaps) takes the alert colour. A 4px halo of the alert colour
+   squares off the rounded inner corners so the block reads as one shape. A warning lamp (a small box
+   with a warning sign) shows over the icon in the inverted half. startAlertBeat() in components.js sets
+   html[data-blink="off"] for the other half of each 1.2 s beat, so every alert on a page flashes
+   together; with reduced motion it never does, and the inverted state holds steady. */
 .tab, .tile-icon { position: relative; }
 .ico { display: flex; justify-content: center; width: var(--tab); flex: none; }
 .lamp { display: none; position: absolute; place-items: center; }
-.tab .lamp { inset: 0 auto 0 0; width: var(--tab); border-radius: var(--r) 0 0 var(--r); padding-top: 6px; place-items: start center; }
+.tab .lamp { inset: 0 auto 0 0; width: var(--tab); border-radius: var(--r) 0 0 var(--r); padding-top: 3px; place-items: start center; background: var(--c); }
 .tile-icon .lamp { inset: 0; }
-.tab .lamp svg { width: 18px; height: 18px; stroke-width: 2.25; }
-.tile-icon .lamp svg { width: 15px; height: 15px; stroke-width: 2.25; }
-.is-warn .lamp, .is-crit .lamp { display: grid; animation: lamp-flash 1.2s steps(1, end) infinite; }
-.is-warn .tab .lamp { background: var(--c); color: var(--fg); }
-.is-crit .tab .lamp { background: var(--c); color: var(--ink); padding-top: 3px; }
-.is-crit .tab .lamp svg { width: 24px; height: 24px; padding: 4px; background: var(--pulse); border-radius: var(--r); }
-.is-warn .tile-icon .lamp { background: var(--card); color: var(--c); }
-.is-crit .tile-icon .lamp { background: var(--card); color: var(--ink); }
-.is-crit .tile-icon .lamp svg { width: 19px; height: 19px; padding: 3px; background: var(--pulse); border-radius: var(--r); }
-@keyframes lamp-flash { 0% { opacity: 1; } 55% { opacity: 0; } }
+.is-warn .lamp, .is-crit .lamp { display: grid; }
+:root[data-blink="off"] :is(.is-warn, .is-crit) .lamp { display: none; }
+.tab .lamp svg { width: 24px; height: 24px; padding: 4px; border-radius: var(--r); stroke-width: 2.25; }
+.tile-icon .lamp svg { width: 16px; height: 16px; padding: 2px; border-radius: 2px; stroke-width: 2.25; }
+:is(.blk, .tile):is(.is-warn, .is-crit) .lamp svg { background: var(--ink); color: var(--alert); }
+
+.blk.is-warn, .tile.is-warn { --alert: var(--caution); }
+.blk.is-crit, .tile.is-crit { --alert: var(--warning); }
+:root:not([data-blink="off"]) .blk:is(.is-warn, .is-crit) {
+  --c: var(--ink); --fg: var(--alert); --bg: var(--alert); --card: var(--alert);
+  background: var(--alert); border-radius: var(--r); box-shadow: 0 0 0 4px var(--alert);
+}
+:root:not([data-blink="off"]) :is(.is-warn, .is-crit) .sc { color: var(--alert); }
+:root:not([data-blink="off"]) .has-target :is(.is-warn, .is-crit) .sc:not(.on-strip) { color: var(--ink); }
+:root:not([data-blink="off"]) .solid-trace:is(.is-warn, .is-crit) .slot { --fg: var(--alert); }
+/* Dials: the tile fills in and the ring, icon and number go dark. */
+:root:not([data-blink="off"]) .tile:is(.is-warn, .is-crit) {
+  --c: var(--ink); --card: var(--alert); --text: var(--ink); --muted: var(--ink);
+  background: var(--alert); border-radius: 50%; box-shadow: 0 0 0 4px var(--alert);
+}
 
 /* ------------------------------------------------------------ values in the tab
    Optional layout (html[data-values="tab"]): the number moves into the filled icon rectangle, so a
@@ -122,7 +150,6 @@ h2 { font: 800 20px/1 var(--mono); margin: 0; }
 :root[data-values="tab"] .blk { grid-template-columns: auto minmax(0, 1fr); }
 :root[data-values="tab"] .tab { align-items: center; padding-top: 0; min-width: var(--tab); }
 :root[data-values="tab"] .tab .lamp { padding-top: 0; place-items: center; }
-:root[data-values="tab"] .is-crit .tab .lamp { padding-top: 0; }
 :root[data-values="tab"] .tab-val {
   display: flex; align-items: baseline; gap: 4px; padding-right: 10px; color: var(--fg);
   font: 800 15px/1 var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; letter-spacing: -0.02em;
@@ -198,7 +225,11 @@ h2 { font: 800 20px/1 var(--mono); margin: 0; }
 .sc.hidden, .mark span.hidden { visibility: hidden; }
 /* Bars with a scale get a thick top strip, a ruler extending from the icon rectangle, and the scale
    numbers sit in it. */
-.has-scale { --strip-h: 12px; }
+.has-scale { --strip-h: var(--scale-strip); }
+/* Every bar is the same height. A bar with no scale keeps its thin top strip, and its body grows by the
+   difference instead, so it lines up with the bars that carry scale numbers. Readouts match too. */
+.meter:not(.has-scale) .lane { height: calc(24px + var(--scale-strip) - var(--strip)); }
+.readout .panel { height: calc(24px + var(--scale-strip) - var(--strip)); }
 .sc {
   position: absolute; top: calc(-1 * (var(--strip-h) + var(--gap-top))); height: var(--strip-h); z-index: 2;
   display: flex; align-items: center; font: 800 8.5px/1 var(--mono); white-space: nowrap; pointer-events: none;
@@ -279,6 +310,22 @@ h2 { font: 800 20px/1 var(--mono); margin: 0; }
 .step.todo { color: var(--muted); box-shadow: inset 0 0 0 1.5px var(--dim); }
 .step.skip { color: var(--dim); text-decoration: line-through; }
 
+/* ------------------------------------------------------------ source tags and context lines
+   A caption above a widget can say where its number comes from: LIVE (filled dot, a sensor streaming)
+   or LOGGED (outlined diamond, entered by hand, plus when). A context line under it says what the
+   number means against a goal or a baseline. */
+.item { display: grid; gap: 10px; min-width: 0; }
+.item-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; min-width: 0; }
+.item-title { font: 500 11px/1 var(--mono); color: var(--muted); }
+.prov {
+  display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+  font: 700 var(--fs-1)/1 var(--mono); letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted);
+}
+.prov::before { content: ''; width: 6px; height: 6px; flex: none; }
+.prov.live::before { border-radius: 50%; background: var(--phosphor); }
+.prov.logged::before { width: 5px; height: 5px; border: 1.5px solid var(--rad); rotate: 45deg; }
+.ctx { font: 500 var(--fs-1)/1.3 var(--mono); color: var(--muted); }
+
 /* ------------------------------------------------------------ responsive */
 @media (max-width: 640px) {
   .page { padding: 28px 16px 60px; gap: 36px; }
@@ -288,6 +335,5 @@ h2 { font: 800 20px/1 var(--mono); margin: 0; }
   .log li > .chip, .log li > .steps { grid-column: 2; justify-self: start; justify-content: flex-start; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .is-warn .lamp, .is-crit .lamp { animation: none; }
   .fill, .r-dot, .tuner-needle { transition: none; }
 }

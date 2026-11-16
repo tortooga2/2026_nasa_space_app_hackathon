@@ -1,0 +1,65 @@
+/* ORBIT · Health log view styles. Adds to the history styles in dashboard.css: the range toggle, the
+   one-line summaries under the daily charts and the featured hydration bar chart. */
+
+/* Range toggle, pushed to the right of the heading. Outlined like the debug presets; the active one filled. */
+.hist-range { margin-left: auto; display: flex; gap: 6px; }
+.hist-range button {
+  padding: 7px 10px; cursor: pointer; font: 700 var(--fs-1)/1 var(--mono); color: var(--phosphor);
+  background: color-mix(in srgb, var(--phosphor) 10%, var(--bg)); border: 2px solid var(--line); border-radius: var(--r);
+}
+.hist-range button:hover { border-color: var(--phosphor); }
+.hist-range button[aria-pressed='true'] { background: var(--phosphor); color: var(--ink); border-color: var(--phosphor); }
+.hist-range button:focus-visible { outline: 2px solid var(--phosphor); outline-offset: 2px; }
+
+/* Cards for the ranges not shown. */
+.h-card[hidden] { display: none; }
+
+/* Average (and days in range) under a daily chart. The count wraps as one piece. */
+.h-sum span { white-space: nowrap; }
+.h-sum {
+  margin: 4px 0 0;
+  font: 500 var(--fs-1)/1.3 var(--mono); color: var(--muted); font-variant-numeric: tabular-nums;
+}
+
+/* ------------------------------------------------------------ featured: hydration */
+.h-card.hyd-card { grid-column: 1 / -1; }
+.h-card .trace .panel.hyd {
+  display: grid; grid-template-columns: 34px minmax(0, 1fr) 180px; gap: 0 14px;
+  padding: 22px 0 14px 8px; align-content: stretch;
+}
+.hyd-y, .hyd-plot { position: relative; height: 160px; }
+.hyd-y span, .hyd-x span, .hyd-goal-label { position: absolute; font: 500 var(--fs-1)/1 var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.hyd-y span { right: 0; translate: 0 -50%; color: var(--muted); }
+.hyd-y span:nth-child(1) { top: 0; }
+.hyd-y span:nth-child(2) { top: 33.33%; }
+.hyd-y span:nth-child(3) { top: 66.67%; }
+.hyd-y span:nth-child(4) { top: 100%; }
+/* Room on the right for the goal label, which sits just past the end of its line. */
+.hyd-chart { min-width: 0; padding-right: 84px; }
+.hyd-plot { border-bottom: 2px solid var(--line); }
+.hyd-plot svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.hyd-bar { fill: var(--oxygen); }
+.hyd-today { fill: var(--rad); }
+.hyd-goal { stroke: var(--text); stroke-width: 2; stroke-dasharray: 6 5; opacity: 0.7; }
+.hyd-goal-label { left: calc(100% + 10px); translate: 0 -50%; color: var(--text); }
+.hyd-x { position: relative; height: 22px; }
+.hyd-x span { top: 10px; translate: -50% 0; color: var(--dim); }
+.hyd-x span:last-child { color: var(--rad); }
+
+/* Summary beside the chart, behind a divider. */
+.hyd-side {
+  display: flex; flex-direction: column; justify-content: center; gap: 10px;
+  padding: 0 16px 0 20px; border-left: 2px solid var(--line);
+}
+.hyd-k { font: 500 var(--fs-1)/1.3 var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.hyd-k.live { color: var(--rad); }
+.hyd-k.met { color: var(--oxygen); }
+.hyd-avg { display: flex; align-items: baseline; gap: 8px; font: 500 var(--fs-2)/1 var(--mono); color: var(--muted); margin-bottom: 6px; }
+.hyd-avg b { font: 800 var(--fs-4)/1 var(--mono); letter-spacing: -0.04em; color: var(--oxygen); font-variant-numeric: tabular-nums; }
+
+/* Narrow screens: the summary drops under the chart, divider on top. */
+@media (max-width: 640px) {
+  .hist-head { flex-wrap: wrap; }
+  .h-card .trace .panel.hyd { grid-template-columns: 30px minmax(0, 1fr); gap: 0 10px; }
+  .hyd-side { grid-column: 1 / -1; border-left: 0; border-top: 2px solid var(--line); padding: 16px 8px 0 0; margin-top: 8px; }
+}

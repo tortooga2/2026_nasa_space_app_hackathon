@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vital-Link Story</title>
+  </head>
+  <body>
+    <!-- The fixed stage: the world outside, the forearm with the live dashboard on it, and weather in front. -->
+    <div class="stage" aria-hidden="false">
+      <div class="scenes" aria-hidden="true">
+        <div class="scene habitat" data-scene="habitat">
+          <div class="porthole"><div class="porthole-view"></div></div>
+          <div class="panel-lights"></div>
+        </div>
+        <div class="scene surface" data-scene="surface">
+          <div class="sun"></div>
+          <svg class="dunes" viewBox="0 0 1600 400" preserveAspectRatio="none">
+            <path class="far" d="M0,180 C180,120 320,150 480,130 C640,110 760,170 920,140 C1080,110 1260,90 1600,150 L1600,400 L0,400 Z" />
+            <path class="mid" d="M0,250 C200,200 380,260 560,230 C760,195 900,270 1120,235 C1300,205 1460,240 1600,220 L1600,400 L0,400 Z" />
+            <path class="near" d="M0,330 C260,290 420,350 700,320 C980,290 1180,360 1600,310 L1600,400 L0,400 Z" />
+          </svg>
+        </div>
+        <div class="scene dust" data-scene="dust">
+          <div class="sun dim"></div>
+          <svg class="dunes" viewBox="0 0 1600 400" preserveAspectRatio="none">
+            <path class="far" d="M0,180 C180,120 320,150 480,130 C640,110 760,170 920,140 C1080,110 1260,90 1600,150 L1600,400 L0,400 Z" />
+            <path class="mid" d="M0,250 C200,200 380,260 560,230 C760,195 900,270 1120,235 C1300,205 1460,240 1600,220 L1600,400 L0,400 Z" />
+            <path class="near" d="M0,330 C260,290 420,350 700,320 C980,290 1180,360 1600,310 L1600,400 L0,400 Z" />
+          </svg>
+          <div class="dust-wall"></div>
+        </div>
+        <div class="scene solar" data-scene="solar">
+          <div class="flare"></div>
+          <div class="aurora"></div>
+        </div>
+        <div class="scene night" data-scene="night">
+          <div class="moon"></div>
+        </div>
+      </div>
+      <canvas class="weather back" aria-hidden="true"></canvas>
+
+      <div class="wrist">
+        <div class="arm" aria-hidden="true"><div class="glove"></div></div>
+        <div class="device">
+          <span class="strap top" aria-hidden="true"></span>
+          <span class="strap bottom" aria-hidden="true"></span>
+          <div class="bezel">
+            <span class="screw" aria-hidden="true"></span><span class="screw" aria-hidden="true"></span>
+            <span class="screw" aria-hidden="true"></span><span class="screw" aria-hidden="true"></span>
+            <div class="screen">
+              <iframe src="/" title="Vital-Link dashboard, live" loading="eager"></iframe>
+            </div>
+          </div>
+          <span class="knob a" aria-hidden="true"></span><span class="knob b" aria-hidden="true"></span>
+        </div>
+      </div>
+
+      <div class="haze" aria-hidden="true"></div>
+      <canvas class="weather front" aria-hidden="true"></canvas>
+    </div>
+
+    <!-- The story. Each chapter sets the scene and the dashboard's state when it reaches the middle of the screen. -->
+    <main class="chapters">
+      <section class="chapter hero" data-chapter="hero">
+        <div class="card">
+          <p class="kicker">NASA Space Apps · Crew health</p>
+          <h1>Vital-Link</h1>
+          <p>A health companion you wear on your arm. Your vitals in one glance, and a little squid that feels what you feel.</p>
+          <p class="scroll-hint">Scroll to follow one sol on Mars ↓</p>
+        </div>
+      </section>
+      <section class="chapter" data-chapter="habitat">
+        <div class="card">
+          <p class="kicker">06:40 · Habitat</p>
+          <h2>Morning check</h2>
+          <p>Heart rate, oxygen and temperature stream from the wrist. Everything is green, so the squid is happy.</p>
+          <p class="try">The display is live. Try tapping the bowl.</p>
+        </div>
+      </section>
+      <section class="chapter" data-chapter="surface">
+        <div class="card">
+          <p class="kicker">10:15 · Surface EVA</p>
+          <h2>Out the airlock</h2>
+          <p>Outside, the display switches to the suit: pressure, oxygen, time left and helmet CO₂, in bars you can read at a glance through a visor.</p>
+        </div>
+      </section>
+      <section class="chapter" data-chapter="dust">
+        <div class="card">
+          <p class="kicker">13:10 · Dust storm</p>
+          <h2>The wind picks up</h2>
+          <p>Hours of hard work in dry, dusty air. Suit oxygen dips, water runs low, and the squid says it plainly before you'd notice yourself.</p>
+        </div>
+      </section>
+      <section class="chapter" data-chapter="solar">
+        <div class="card">
+          <p class="kicker">17:30 · Solar particle event</p>
+          <h2>Take shelter</h2>
+          <p>A solar storm hits. Radiation and space-weather gauges go to warning, the bars invert and flash, and every alert is unmistakable.</p>
+        </div>
+      </section>
+      <section class="chapter" data-chapter="night">
+        <div class="card">
+          <p class="kicker">22:00 · All clear</p>
+          <h2>Back to green</h2>
+          <p>The storm passes, the readings settle, and the squid relaxes. Built from five reusable display components and limits from NASA-STD-3001.</p>
+          <p class="links"><a href="/">Open the dashboard</a><a href="/displays.html">Display Kit</a></p>
+        </div>
+      </section>
+    </main>
+    <script type="module" src="/src/story/main.js"></script>
+  </body>
+</html>

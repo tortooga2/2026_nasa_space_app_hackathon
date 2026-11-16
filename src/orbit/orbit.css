@@ -1,0 +1,86 @@
+/* ORBIT v2: additions on top of the dashboard's styles (../dashboard/dashboard.css), from the team's Figma:
+   source tags (live / logged), context lines, quick logging, and the mission identity in the status bar. */
+
+/* Source tags (.prov) and context lines (.ctx) are the Display Kit's: see displays.css. */
+
+/* Dials beside the circle: the tile, with its context and source to its right. */
+.dials { grid-auto-rows: 92px; grid-template-columns: 236px; gap: 18px; }
+.dial-cell { display: grid; grid-template-columns: 92px minmax(0, 1fr); align-items: center; gap: 14px; }
+.dial-meta { display: grid; gap: 8px; }
+/* Captions sit at the top of each bar, whether or not a context line follows. */
+.topbar { align-items: start; }
+
+/* ------------------------------------------------------------ status bar: mission identity and sync */
+.brand { display: grid; gap: 5px; margin-right: 12px; }
+.brand b { font: 800 var(--fs-3)/1 var(--mono); color: var(--phosphor); letter-spacing: 0.02em; white-space: nowrap; }
+.brand span { font: 500 var(--fs-1)/1 var(--mono); color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap; }
+.sync { display: flex; align-items: center; gap: 8px; font: 500 var(--fs-1)/1 var(--mono); color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap; }
+.sync b { color: var(--text); font-variant-numeric: tabular-nums; }
+.sync-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--phosphor); }
+.clock-sub b { font-variant-numeric: tabular-nums; }
+
+/* ------------------------------------------------------------ quick logging */
+.tasks { position: relative; }
+.tasks header { align-items: center; }
+.log-primary {
+  height: 36px; padding: 0 14px; cursor: pointer; font: 800 var(--fs-1)/1 var(--mono); letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--ink); background: var(--phosphor); border: 0; border-radius: var(--r);
+}
+.log-primary:hover, .log-primary:focus-visible { background: var(--text); outline: none; }
+.quick-log { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.quick-log button, .log-cancel {
+  height: 40px; cursor: pointer; font: 700 var(--fs-1)/1 var(--mono); letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--phosphor); background: none; border: 2px solid var(--line); border-radius: var(--r);
+}
+.quick-log button:hover, .quick-log button:focus-visible, .log-cancel:hover { border-color: var(--phosphor); outline: none; }
+.log-done { margin: -12px 0 0; font: 700 var(--fs-1)/1.3 var(--mono); color: var(--phosphor); }
+.past-entry {
+  display: flex; justify-content: space-between; align-items: baseline; padding: 14px 0 0; cursor: pointer; text-align: left;
+  font: 500 var(--fs-1)/1 var(--mono); color: var(--muted); background: none; border: 0; border-top: 2px solid var(--line);
+}
+.past-entry span { font-weight: 800; color: var(--phosphor); letter-spacing: 0.06em; text-transform: uppercase; }
+.past-entry:hover span, .past-entry:focus-visible span { color: var(--text); }
+.ref { margin: auto 0 0; font: 500 var(--fs-1)/1.4 var(--mono); color: var(--dim); }
+
+/* The log form covers the tasks column. */
+.log-sheet {
+  position: absolute; inset: 0; z-index: 5; display: grid; align-content: start; gap: 24px; padding: 36px;
+  background: var(--card); border-left: 2px solid var(--frame);
+}
+.log-sheet[hidden] { display: none; }
+.log-sheet header { display: flex; align-items: center; justify-content: space-between; }
+.log-sheet h2 { margin: 0; font: 800 var(--fs-3)/1 var(--mono); }
+.log-what { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; border: 0; }
+.log-what legend, .log-field > span:first-child { margin-bottom: 10px; font: 700 var(--fs-1)/1 var(--mono); color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+.log-what label { cursor: pointer; }
+.log-what input { position: absolute; opacity: 0; pointer-events: none; }
+.log-what span {
+  display: block; padding: 10px 12px; font: 700 var(--fs-2)/1 var(--mono); color: var(--phosphor);
+  border: 2px solid var(--line); border-radius: var(--r);
+}
+.log-what input:checked + span { background: var(--phosphor); border-color: var(--phosphor); color: var(--ink); }
+.log-what input:focus-visible + span { border-color: var(--text); }
+.log-field { display: grid; }
+.log-amount, .log-when { display: flex; align-items: center; gap: 10px; }
+.log-sheet input[type="number"], .log-sheet input[type="time"], .log-sheet select {
+  height: 44px; padding: 0 12px; min-width: 0; font: 800 var(--fs-3)/1 var(--mono); color: var(--text); color-scheme: dark;
+  background: var(--bg); border: 2px solid var(--line); border-radius: var(--r);
+}
+.log-sheet select { font-size: var(--fs-2); }
+.log-sheet input[type="number"] { width: 140px; font-variant-numeric: tabular-nums; }
+.log-sheet input:focus-visible, .log-sheet select:focus-visible { border-color: var(--phosphor); outline: none; }
+.log-unit { font: 700 var(--fs-2)/1 var(--mono); color: var(--muted); }
+.log-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 8px; }
+.log-actions .log-primary { height: 44px; }
+.log-actions .log-cancel { height: 44px; }
+
+@media (max-width: 1100px) {
+  .dials { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); grid-auto-rows: auto; gap: 16px; }
+  .brand { margin: 0; justify-items: center; }
+  .views { flex-wrap: wrap; justify-content: center; }
+}
+
+.dbg-links { margin: 0; font: 500 var(--fs-1)/1 var(--mono); color: var(--dim); }
+.dbg-links a { color: var(--phosphor); }
+/* Tasks, quick log and past entry fit the column without scrolling. */
+.tasks { gap: 22px; }

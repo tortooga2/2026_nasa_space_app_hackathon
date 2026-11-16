@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en" data-values="tab">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ORBIT Crew Health</title>
+  </head>
+  <body>
+    <div class="shell">
+      <main class="dash">
+        <section class="stage" aria-label="Health views">
+          <div class="view-host" id="view-host"></div>
+        </section>
+
+        <aside class="tasks" aria-labelledby="tasks-title">
+          <header>
+            <h1 id="tasks-title" class="sec-head">Tasks</h1>
+            <button id="add-log" class="log-primary" type="button">+ Add health log</button>
+          </header>
+          <ul id="task-list"></ul>
+          <div class="quick-log">
+            <button type="button" data-quick="water">+ Log water</button>
+            <button type="button" data-quick="kcal">+ Log meal</button>
+          </div>
+          <p class="log-done" id="log-done" role="status" hidden></p>
+          <button id="past-entry" class="past-entry" type="button">Catching up? <span>Add past entry ↗</span></button>
+          <p class="ref">Limits per NASA-STD-3001 Vol. 2 · Concept, sample data</p>
+        </aside>
+      </main>
+
+      <!-- Status bar below the frame: view switcher, station clock, open tasks. -->
+      <footer class="statusbar">
+        <div class="views">
+          <div class="brand">
+            <b>[ O ] ORBIT</b>
+            <span>Odyssey-04 · Crew 01 · A. Morgan</span>
+          </div>
+          <div class="view-switch">
+            <button id="prev" type="button" aria-label="Previous view"><i data-lucide="chevron-left"></i></button>
+            <span class="view-now" id="view-now" aria-live="polite"></span>
+            <button id="next" type="button" aria-label="Next view"><i data-lucide="chevron-right"></i></button>
+          </div>
+        </div>
+        <div class="clock" aria-label="Station time">
+          <span class="clock-time"><span id="gmt"></span><span class="clock-sec" id="gmt-s"></span></span>
+          <span class="clock-sub">
+            <span>UTC</span>
+            <span id="met" title="Mission elapsed time"></span>
+          </span>
+        </div>
+        <div class="status-right">
+          <div class="sync" title="Last wearable sync"><span class="sync-dot"></span>Wearable synced <b id="sync-time"></b></div>
+          <button id="debug-toggle" class="debug-toggle" type="button" aria-pressed="false" title="Debug (` key)">Debug</button>
+          <div class="open-count"><span>Open tasks</span><b id="task-count"></b></div>
+        </div>
+      </footer>
+    </div>
+    <script type="module" src="/src/orbit/main.js"></script>
+  </body>
+</html>

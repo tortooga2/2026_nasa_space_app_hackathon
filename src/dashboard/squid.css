@@ -1,0 +1,46 @@
+/* The companion squid (squid.js): its body and face, its speech bubble, and the bubbles in its bowl.
+   It fills whatever box it is put in (a .pet is absolutely positioned to inset 0). */
+/* The companion squid sits in the circle, its speech bubble above it. Its colour follows its mood:
+   green when fine, amber when not great, red when bad. */
+.pet { position: absolute; inset: 0; display: grid; place-items: center; --pet: var(--phosphor); }
+.pet[data-mood="low"] { --pet: var(--caution); }
+.pet[data-mood="bad"] { --pet: var(--warning); }
+.squid { width: 60%; height: 60%; margin-top: 16%; overflow: visible; }
+.sq-mantle, .sq-arm, .sq-lid { fill: var(--pet); transition: fill 0.6s ease; }
+.sq-eye { fill: var(--ink); }
+.sq-mouth, .sq-brow { fill: none; stroke: var(--ink); stroke-width: 4.5; stroke-linecap: round; stroke-linejoin: round; }
+.sq-sweat { fill: var(--oxygen); }
+.pet-bubble {
+  position: absolute; top: 9%; left: 50%; transform: translateX(-50%); margin: 0; white-space: nowrap;
+  display: grid; gap: 4px;
+  padding: 10px 14px; text-align: center; font: 700 var(--fs-2)/1.3 var(--mono); color: var(--text);
+  background: var(--card); border: 2px solid var(--pet); border-radius: 4px; transition: border-color 0.6s ease;
+}
+.pet-more { font: 500 var(--fs-1)/1 var(--mono); color: var(--muted); }
+.pet-bubble::after {
+  content: ''; position: absolute; left: 50%; bottom: -8px; width: 12px; height: 12px; margin-left: -6px;
+  background: var(--card); border: solid var(--pet); border-width: 0 2px 2px 0; transform: rotate(45deg);
+}
+
+/* Bubbles from tapping the bowl: thin rings with a faint highlight, rising and wobbling as they fade. */
+.pet-bubble { z-index: 2; }
+.fizz-layer { position: absolute; inset: 0; clip-path: circle(50%); pointer-events: none; }
+.fizz {
+  position: absolute; width: var(--size); height: var(--size); margin: calc(var(--size) / -2) 0 0 calc(var(--size) / -2);
+  border-radius: 50%; border: 1.5px solid color-mix(in srgb, var(--text) 45%, transparent);
+  background: radial-gradient(circle at 32% 30%, color-mix(in srgb, var(--text) 35%, transparent) 0 18%, transparent 24%);
+  opacity: 0; animation: fizz-rise var(--dur) cubic-bezier(0.3, 0.6, 0.5, 1) forwards;
+}
+/* The constant streams: smaller, fainter and steadier than tapped bubbles. */
+.fizz.ambient { border-width: 1px; filter: opacity(0.4); animation-timing-function: linear; }
+@keyframes fizz-rise {
+  0% { opacity: 0; transform: translate(0, 0) scale(0.4); }
+  12% { opacity: 0.8; transform: translate(calc(var(--sway) * -0.4), calc(var(--rise) * 0.1)) scale(1); }
+  40% { transform: translate(var(--sway), calc(var(--rise) * 0.45)); }
+  70% { opacity: 0.55; transform: translate(calc(var(--sway) * -0.6), calc(var(--rise) * 0.75)); }
+  100% { opacity: 0; transform: translate(calc(var(--sway) * 0.3), var(--rise)) scale(1.1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fizz { animation-name: fizz-fade; }
+  @keyframes fizz-fade { 0%, 100% { opacity: 0; } 30% { opacity: 0.6; } }
+}

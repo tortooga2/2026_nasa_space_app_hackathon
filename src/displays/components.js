@@ -27,15 +27,55 @@ function toneFor(v, zones) {
   return zones.at(-1).tone
 }
 
-// Widgets mark their state with a class (.is-warn / .is-crit) but don't restyle themselves. Instead a
-// warning lamp flashes over the widget's icon: hollow in the widget colour for a warning, solid red when bad.
-function setState(el, tone) {
+// Widgets mark their state with a class (.is-warn / .is-crit); displays.css turns that into a flashing,
+// inverted block in amber (caution) or red (warning), with a lamp over the icon.
+// A value hovering at a limit would flick the widget in and out of alert several times a second, so
+// alerts latch: a worse state shows at once, but a calmer one only once it has held for CALM_MS.
+const RANK = { ok: 0, warn: 1, crit: 2 }
+const CALM_MS = 3000
+function showState(el, tone) {
   el.classList.toggle('is-warn', tone === 'warn')
   el.classList.toggle('is-crit', tone === 'crit')
   if (tone === 'warn' || tone === 'crit') el.title = tone === 'crit' ? 'Out of safe range' : 'Approaching limit'
   else el.removeAttribute('title')
 }
+function setState(el, tone) {
+  tone ??= 'ok'
+  const shown = el.dataset.tone ?? 'ok'
+  if (RANK[tone] >= RANK[shown]) {
+    clearTimeout(el.calmTimer)
+    el.calmTimer = null
+    el.dataset.tone = tone
+    return showState(el, tone)
+  }
+  // Calmer than what's shown: wait, and give up if the value goes back out of range meanwhile.
+  if (el.calmTone !== tone) {
+    clearTimeout(el.calmTimer)
+    el.calmTimer = null
+  }
+  el.calmTone = tone
+  el.calmTimer ??= setTimeout(() => {
+    el.calmTimer = null
+    el.dataset.tone = el.calmTone
+    showState(el, el.calmTone)
+  }, CALM_MS)
+}
 const applyTone = (el, v, zones) => setState(el, toneFor(v, zones))
+
+// Every alert on a page flashes on one shared beat, like a master caution light: inverted for 0.66 s,
+// its own colours for 0.54 s. With reduced motion there is no beat and alerts stay inverted.
+// Safe to call more than once: only one beat ever runs on a page.
+let beating = false
+export function startAlertBeat() {
+  if (beating || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+  beating = true
+  const blink = () => {
+    const on = document.documentElement.dataset.blink !== 'off'
+    document.documentElement.dataset.blink = on ? 'off' : 'on'
+    setTimeout(blink, on ? 540 : 660)
+  }
+  setTimeout(blink, 660)
+}
 
 // Icon tab + body. An empty tab is filled with the card's icon by card().
 const LAMP = '<span class="lamp" aria-hidden="true"><i data-lucide="triangle-alert"></i></span>'

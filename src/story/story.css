@@ -1,0 +1,159 @@
+/* Story page: a fixed stage (scene, arm with the live dashboard, weather) behind scrolling chapters.
+   Same type and colours as the dashboard; the scenes bring their own palettes (Mars, space). */
+:root {
+  --bg: #0c0a10;
+  --ink: #0c0a10;
+  --text: #e4fbe8;
+  --muted: #a9c4b2;
+  --phosphor: #7ffb94;
+  --mono: 'JetBrains Mono', ui-monospace, monospace;
+  --fs-1: 10px;
+  --fs-2: 13px;
+  --fs-3: 20px;
+  --fs-4: 44px;
+  --lift: 0;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 400 var(--fs-2)/1.6 var(--mono); }
+
+/* ------------------------------------------------------------ stage */
+.stage { position: fixed; inset: 0; overflow: hidden; }
+.scenes, .scene, .weather, .haze { position: absolute; inset: 0; }
+.weather { width: 100%; height: 100%; pointer-events: none; }
+.weather.front { z-index: 3; }
+.scene { opacity: 0; transition: opacity 1.4s ease; }
+.scene.on { opacity: 1; }
+
+/* Habitat: a dim cabin, a porthole onto the dunes, a strip of panel lights. */
+.habitat { background: radial-gradient(ellipse 80% 70% at 30% 110%, #3a2440, transparent), linear-gradient(#141019, #1d1522); }
+.porthole {
+  position: absolute; right: 6vw; top: 8vh; width: 34vmin; aspect-ratio: 1; border-radius: 50%; padding: 2.2vmin;
+  background: linear-gradient(145deg, #3b3444, #17131c); box-shadow: inset 0 0 0 2px #4a4256, 0 30px 60px rgb(0 0 0 / 0.5);
+}
+.porthole-view {
+  width: 100%; height: 100%; border-radius: 50%;
+  background: linear-gradient(transparent 55%, #8a4a2c 56%, #6b3420 72%, #4a2416), linear-gradient(#e6b483, #c98f60 55%);
+  box-shadow: inset 0 0 30px rgb(0 0 0 / 0.5);
+}
+.panel-lights {
+  position: absolute; left: 0; right: 0; top: 4vh; height: 6px;
+  background: repeating-linear-gradient(90deg, #ffd9a8 0 60px, transparent 60px 140px); opacity: 0.25; filter: blur(2px);
+}
+
+/* Mars surface by day: butterscotch sky, a pale small sun, rust dunes. */
+.surface { background: linear-gradient(#b9875f, #e2b080 60%, #d49b6a); }
+.sun { position: absolute; left: 18vw; top: 14vh; width: 5vmin; aspect-ratio: 1; border-radius: 50%; background: #fff6e4; box-shadow: 0 0 60px 30px rgb(255 240 220 / 0.35); }
+.dunes { position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: 45vh; }
+.dunes .far { fill: #a8643f; }
+.dunes .mid { fill: #8a4a2c; }
+.dunes .near { fill: #6b3420; }
+
+/* Dust storm: the same land, browner and choked, with a wall of dust rolling in. */
+.dust { background: linear-gradient(#6b4630, #9a6a48 55%, #8a5a3a); }
+.dust .dunes { filter: blur(2px) saturate(0.7) brightness(0.8); }
+.sun.dim { opacity: 0.35; box-shadow: 0 0 80px 50px rgb(255 220 180 / 0.2); }
+.dust-wall {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 70% 60% at 0% 60%, rgb(160 105 65 / 0.85), transparent 70%), linear-gradient(90deg, rgb(150 95 60 / 0.6), transparent 60%);
+  animation: wall 9s ease-in-out infinite alternate;
+}
+@keyframes wall { from { translate: -6vw 0; } to { translate: 4vw 0; } }
+
+/* Solar particle event: a dark sky, a hard flare in the corner, aurora curtains. */
+.solar { background: radial-gradient(ellipse 60% 50% at 50% 120%, #2a0f2e, transparent), #0d0712; }
+.flare {
+  position: absolute; right: -12vmin; top: -12vmin; width: 60vmin; aspect-ratio: 1; border-radius: 50%;
+  background: radial-gradient(circle, #fff 0 8%, #ffd0f0 14%, rgb(255 80 180 / 0.55) 30%, transparent 65%);
+  animation: flare 2.4s ease-in-out infinite alternate;
+}
+@keyframes flare { from { opacity: 0.8; scale: 0.96; } to { opacity: 1; scale: 1.04; } }
+.aurora {
+  position: absolute; left: -10%; right: -10%; top: 10vh; height: 40vh; filter: blur(30px); opacity: 0.55;
+  background: linear-gradient(90deg, transparent, rgb(127 251 148 / 0.5), rgb(160 120 255 / 0.5), rgb(255 80 180 / 0.4), transparent);
+  animation: aurora 7s ease-in-out infinite alternate;
+}
+@keyframes aurora { from { translate: -4vw 0; skew: -8deg 0; } to { translate: 4vw 2vh; skew: 8deg 0; } }
+
+/* Night: deep sky, stars (drawn on the canvas), and Phobos. */
+.night { background: radial-gradient(ellipse 90% 60% at 50% 120%, #1a1430, transparent), #05060c; }
+.moon { position: absolute; right: 14vw; top: 12vh; width: 7vmin; aspect-ratio: 1.15; border-radius: 48% 52% 50% 50%; background: radial-gradient(circle at 35% 35%, #a49a92, #5d5550); }
+
+/* A brown haze over everything, including the device, during the dust storm. */
+.haze { z-index: 2; pointer-events: none; opacity: 0; transition: opacity 1.4s ease; background: radial-gradient(ellipse at 20% 50%, rgb(150 95 55 / 0.35), rgb(120 75 45 / 0.12)); }
+
+/* ------------------------------------------------------------ the forearm and the device
+   The arm (in a white suit sleeve) runs across the screen with a glove at the right; the display is
+   strapped on top. --lift (0 → 1 over the first screen) raises it from a low tilt to face the reader. */
+.wrist {
+  position: absolute; left: 50%; top: 52%; width: min(60vw, 1000px); z-index: 1;
+  translate: calc(-50% + 13vw) -50%;
+  transform: perspective(1800px) rotateX(calc((1 - var(--lift)) * 48deg)) rotateZ(calc(-3deg - (1 - var(--lift)) * 8deg)) scale(calc(0.82 + var(--lift) * 0.18));
+  transform-origin: 50% 70%;
+}
+.arm {
+  position: absolute; left: -70%; right: -34%; top: 12%; bottom: 12%; border-radius: 40px 999px 999px 40px;
+  background:
+    repeating-linear-gradient(100deg, transparent 0 90px, rgb(0 0 0 / 0.06) 90px 96px, transparent 96px 180px),
+    linear-gradient(#f1ece2, #d8d1c3 55%, #b9b1a2);
+  box-shadow: inset 0 -16px 30px rgb(0 0 0 / 0.18), 0 40px 80px rgb(0 0 0 / 0.45);
+}
+/* Glove: a rounded mitt at the right end, in suit orange-white with a cuff ring. */
+.glove {
+  position: absolute; right: -4%; top: -6%; bottom: -6%; width: 14%; border-radius: 30% 50% 50% 30%;
+  background: linear-gradient(#efe9df, #cfc7b8); box-shadow: inset 6px 0 0 #9aa2a8, inset 14px 0 0 #c7ccd0;
+}
+.device { position: relative; aspect-ratio: 1440 / 900; }
+.strap { position: absolute; left: 30%; width: 40%; height: 16%; background: linear-gradient(90deg, #26222c, #3a3542 50%, #26222c); border-radius: 6px; }
+.strap.top { top: -9%; }
+.strap.bottom { bottom: -9%; }
+.bezel {
+  position: absolute; inset: 0; padding: 2.4%; border-radius: 22px;
+  background: linear-gradient(145deg, #3d3846, #1b1820 60%, #2a2630);
+  box-shadow: inset 0 0 0 2px #514a5c, inset 0 -6px 12px rgb(0 0 0 / 0.5), 0 24px 50px rgb(0 0 0 / 0.55);
+}
+.screw { position: absolute; width: 10px; height: 10px; border-radius: 50%; background: radial-gradient(circle at 40% 40%, #8a8392, #3a3540); }
+.screw:nth-child(1) { left: 1%; top: 2%; }
+.screw:nth-child(2) { right: 1%; top: 2%; }
+.screw:nth-child(3) { left: 1%; bottom: 2%; }
+.screw:nth-child(4) { right: 1%; bottom: 2%; }
+.screen { position: relative; width: 100%; height: 100%; overflow: hidden; border-radius: 8px; background: #0c0a10; box-shadow: 0 0 0 2px #0a0a0d; }
+/* The dashboard renders at 1440×900 and is scaled to the screen (story/main.js sets the scale). */
+.screen iframe { position: absolute; left: 0; top: 0; width: 1440px; height: 900px; border: 0; transform-origin: 0 0; }
+/* Glass glare. */
+.screen::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(120deg, rgb(255 255 255 / 0.07), transparent 35%); }
+.knob { position: absolute; right: -2.2%; width: 2.4%; height: 12%; border-radius: 0 6px 6px 0; background: linear-gradient(90deg, #2a2630, #4a4454); }
+.knob.a { top: 24%; }
+.knob.b { top: 42%; }
+
+/* ------------------------------------------------------------ chapters
+   Transparent screens scrolling over the stage; only the cards catch the pointer, so the device stays
+   usable between them. */
+.chapters { position: relative; z-index: 4; pointer-events: none; }
+.chapter { min-height: 130vh; display: flex; align-items: center; padding: 0 0 0 5vw; }
+.chapter.hero { min-height: 100vh; }
+.card {
+  pointer-events: auto; width: min(340px, 90vw); display: grid; gap: 12px; padding: 24px;
+  background: rgb(12 10 16 / 0.82); border: 2px solid var(--phosphor); border-radius: 4px;
+  backdrop-filter: blur(6px);
+}
+.card h1 { margin: 0; font: 800 var(--fs-4)/1 var(--mono); color: var(--phosphor); letter-spacing: -0.03em; }
+.card h2 { margin: 0; font: 800 var(--fs-3)/1.2 var(--mono); color: var(--phosphor); }
+.card p { margin: 0; }
+.kicker { font: 700 var(--fs-1)/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.scroll-hint, .try { font: 700 var(--fs-1)/1.4 var(--mono); color: var(--phosphor); letter-spacing: 0.04em; text-transform: uppercase; }
+.links { display: flex; gap: 12px; flex-wrap: wrap; }
+.links a { padding: 10px 12px; font: 800 var(--fs-1)/1 var(--mono); text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink); background: var(--phosphor); border-radius: 3px; text-decoration: none; }
+.links a + a { color: var(--phosphor); background: none; box-shadow: inset 0 0 0 2px var(--phosphor); }
+
+/* ------------------------------------------------------------ narrow screens: device on top, cards below */
+@media (max-width: 900px) {
+  .wrist { width: 92vw; top: 30%; translate: -50% -50%; }
+  .chapter { align-items: flex-end; padding: 0 16px 8vh; }
+  .porthole { width: 40vmin; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .scene, .haze { transition: none; }
+  .dust-wall, .flare, .aurora { animation: none; }
+}

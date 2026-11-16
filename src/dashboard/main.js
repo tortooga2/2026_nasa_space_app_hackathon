@@ -46,7 +46,9 @@ import {
   Wind,
   X,
 } from 'lucide'
-import { widget, Readout, Meter, Radial, Trace, Log } from '../displays/components.js'
+import { widget, Readout, Meter, Radial, Trace, Log, startAlertBeat } from '../displays/components.js'
+import { createSquid } from './squid.js'
+import { createFlows } from './flows.js'
 
 // Companion dashboard, three views cycled with the arrows under the stage:
 //   Main      — a locked panel around the (empty) companion disc, plus a scrolling column of everything else
@@ -77,7 +79,7 @@ const STATS = {
   mood: { label: 'Mood', group: 'Daily', unit: '/ 5', min: 1, max: 5, step: 1, value: 4, critLo: 1, warnLo: 2 },
   cycleDay: { label: 'Cycle day', group: 'Daily', unit: '', min: 1, max: 28, step: 1, value: 12 },
   bodyMass: { label: 'Body mass', group: 'Daily', unit: 'kg', min: 55, max: 90, step: 0.1, value: 71.8, critLo: 65, warnLo: 68 },
-  vision: { label: 'Vision shift', group: 'Daily', unit: 'D', min: -1.5, max: 0.5, step: 0.05, value: -0.5, critLo: -0.76, warnLo: -0.26 },
+  vision: { label: 'Vision shift', group: 'Daily', unit: 'D', min: -1.5, max: 0.5, step: 0.05, value: -0.2, critLo: -0.76, warnLo: -0.26 },
   reaction: { label: 'Reaction time', group: 'Daily', unit: 'ms', min: 180, max: 400, step: 1, value: 268, warnHi: 300, critHi: 340 },
   vo2: { label: 'VO₂ max', group: 'Daily', unit: 'mL/kg/min', min: 25, max: 55, step: 0.5, value: 39.5, critLo: 30, warnLo: 35 },
   // Cabin
@@ -211,12 +213,56 @@ function bloodPressure() {
 // circle. Right: a scrolling list that bends around the circle and keeps only the rows beside it in focus.
 const dialTile = (id, icon, accent, o) => widget({ icon, accent, parts: [dial(id, o)] })
 
+// ------------------------------------------------------------------ companion
+
+// The squid's mood comes from every stat: each caution counts 1 and each warning 3. Its speech bubble
+// names the worst one ("Hydration low"), and how many more need attention.
+const HINTS = {
+  water: { lo: 'Hydration low' },
+  sleep: { lo: 'Not enough sleep' },
+  exercise: { lo: 'Need some exercise' },
+  kcal: { lo: 'Eat something' },
+  mood: { lo: 'Feeling down' },
+  co2: { hi: 'Stuffy air (CO₂ high)' },
+  radiation: { hi: 'Radiation dose high' },
+  noise: { hi: 'Too noisy' },
+}
+const pet = createSquid({ reduced: window.matchMedia('(prefers-reduced-motion: reduce)').matches })
+live.push(pet)
+function hintFor(id) {
+  const s = STATS[id]
+  const side = s.value <= (s.warnLo ?? -Infinity) ? 'lo' : 'hi'
+  return HINTS[id]?.[side] ?? `${s.label} ${side === 'lo' ? 'low' : 'high'}`
+}
+// The latest result of each guided check-in (weight, heart rate, blood pressure). A bad result holds the
+// squid at least that unhappy, and names itself in the bubble, until the check is passed again.
+const checks = {}
+const MOODS = ['happy', 'okay', 'low', 'bad']
+function showPetMood() {
+  const issues = Object.entries(STATS)
+    .map(([id, s]) => ({ id, tone: toneOf(s) }))
+    .filter((x) => x.tone !== 'ok')
+    .sort((a, b) => (a.tone === b.tone ? 0 : a.tone === 'crit' ? -1 : 1))
+  const score = issues.reduce((n, x) => n + (x.tone === 'crit' ? 3 : 1), 0)
+  let name = score === 0 ? 'happy' : score <= 2 ? 'okay' : score <= 5 ? 'low' : 'bad'
+  let hint = issues.length ? hintFor(issues[0].id) : 'Feeling great!'
+  let more = Math.max(0, issues.length - 1)
+  const worst = Object.values(checks).filter((c) => c.mood).sort((a, b) => MOODS.indexOf(b.mood) - MOODS.indexOf(a.mood))[0]
+  if (worst && MOODS.indexOf(worst.mood) >= MOODS.indexOf(name)) {
+    name = worst.mood
+    hint = worst.hint
+    more = issues.length
+  }
+  pet.setMood(name, hint, more)
+}
+showPetMood()
+
 function mainView() {
   const el = h(`<div class="view view-main">
     <div class="topbar"></div>
     <div class="dials"></div>
     <div class="orbit">
-      <div class="companion" aria-label="Companion (empty)"></div>
+      <div class="companion" aria-label="Companion"></div>
       <div class="snap" tabindex="0" aria-label="More stats"><div class="snap-list"></div></div>
       <div class="snap-nav" role="group" aria-label="Sections"></div>
     </div>
@@ -328,6 +374,14 @@ function mainView() {
   // smooth instead of rows jumping sideways at the circle's top and bottom.
   const orbit = el.querySelector('.orbit')
   const companion = el.querySelector('.companion')
+  companion.append(pet.el)
+  // Tapping the bowl releases bubbles. The scrolling list sits over the circle (masked out there), so the
+  // tap is caught on the orbit and kept only when it lands inside the circle.
+  orbit.addEventListener('pointerdown', (e) => {
+    const b = companion.getBoundingClientRect()
+    const r = b.width / 2
+    if (Math.hypot(e.clientX - (b.left + r), e.clientY - (b.top + r)) <= r) pet.fizz(e.clientX, e.clientY)
+  })
   const wide = window.matchMedia('(min-width: 1101px)')
   const geo = { on: false, cx: 0, cy: 0, R: 0, reach: 0 }
   function bend() {
@@ -528,6 +582,8 @@ document.getElementById('next').addEventListener('click', () => showView(view + 
 
 // Each task has a due time (station time, minutes after 00:00 GMT). Drinking repeats every two hours.
 const TASKS = [
+  { id: 'weight', icon: 'scale', accent: 'signal', text: 'Weight check-in', detail: 'SAMMD or BMMD', due: 10 * 60, flow: 'weight' },
+  { id: 'cardio', icon: 'heart-pulse', accent: 'pulse', text: 'Cardio check', detail: 'Heart rate · blood pressure', due: 11 * 60 + 50, flow: 'cardio' },
   { id: 'sleep', icon: 'moon', accent: 'signal', text: 'Log sleep', detail: 'Last night', due: 7 * 60 },
   { id: 'mood', icon: 'smile', accent: 'neural', text: 'Rate your mood', detail: 'Daily check-in', due: 9 * 60 },
   { id: 'drink', icon: 'glass-water', accent: 'oxygen', text: 'Drink water', detail: '250 mL', due: 12 * 60, repeat: 120 },
@@ -547,8 +603,8 @@ list.innerHTML = TASKS.map((t) => `<li class="task" data-id="${t.id}" style="--a
     <span class="t-text">${t.text}</span>
     <span class="t-detail">${t.detail}</span>
     <span class="t-when"></span>
-    <button type="button" aria-label="${t.repeat ? 'Log' : 'Done'}: ${t.text}">
-      <i data-lucide="${t.repeat ? 'plus' : 'check'}"></i>
+    <button type="button" aria-label="${t.flow ? 'Start' : t.repeat ? 'Log' : 'Done'}: ${t.text}">
+      <i data-lucide="${t.flow ? 'chevron-right' : t.repeat ? 'plus' : 'check'}"></i>
     </button>
   </div>
 </li>`).join('')
@@ -566,11 +622,48 @@ list.addEventListener('click', (e) => {
     renderTasks()
     return
   }
+  if (t.flow) {
+    // Guided check-ins run on the main view, so the companion can be seen reacting. They can be redone.
+    flows.open(t.flow, () => markDone(t))
+    return
+  }
   if (t.done) return
-  t.done = true
-  row.classList.add('done')
   if (t.id === 'mood') setStat('mood', 5)
+  markDone(t)
+})
+function markDone(t) {
+  t.done = true
+  rowOf(t).classList.add('done')
   renderTasks()
+}
+
+// ------------------------------------------------------------------ guided check-ins
+
+// A warning along the bottom of the stage when a check-in finds a problem; dismissed with ×, or cleared
+// when that check passes.
+const banner = h(`<div class="alert-banner" role="alert" hidden>
+  <i data-lucide="triangle-alert"></i><p></p><button type="button" aria-label="Dismiss warning"><i data-lucide="x"></i></button>
+</div>`)
+document.querySelector('.stage').append(banner)
+banner.querySelector('button').addEventListener('click', () => { banner.hidden = true })
+const flows = createFlows({
+  STATS,
+  h,
+  mount: document.querySelector('.dash'),
+  onOpen: () => showView(0),
+  onResult(kind, r) {
+    if (kind === 'weight') setStat('bodyMass', r.value)
+    const mood = r.mood !== undefined ? r.mood : r.tone === 'crit' ? 'bad' : r.tone === 'warn' ? 'low' : null
+    checks[kind] = { mood, hint: r.hint, warning: r.warning, tone: r.tone }
+    const open = Object.values(checks).filter((c) => c.warning)
+    if (open.length) {
+      const latest = r.warning ? checks[kind] : open.at(-1)
+      banner.className = `alert-banner ${latest.tone}`
+      banner.querySelector('p').textContent = latest.warning
+      banner.hidden = false
+    } else banner.hidden = true
+    showPetMood()
+  },
 })
 
 // ------------------------------------------------------------------ station clock
@@ -638,6 +731,8 @@ const PRESETS = {
   Nominal: {},
   Dehydrated: { water: 0.6, hr: [92, 104], coreTemp: [37.3, 37.6], mood: 3, glucose: [110, 125] },
   'High CO₂': { co2: 6.1, resp: [20, 24], hr: [88, 96], mood: 2, reaction: 318 },
+  'High heart rate': { hr: [112, 120] },
+  'High BP': { bpSys: 146, bpDia: 94 },
   Fever: { coreTemp: [38.6, 39], hr: [104, 116], resp: [20, 24], spo2: [93, 95], sleep: 4.5 },
   'Solar storm': { kpG: 4, kpS: 4, kpR: 3, radiation: 590 },
   'EVA emergency': { suitO2: 22, evaTime: 0.4, suitP: 27.8, helmetCo2: [4.8, 5.6], hr: [128, 146], metabolic: [1900, 2300] },
@@ -764,6 +859,10 @@ window.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && !debug.hidden) toggleDebug(false)
 })
 
+// For the story page (story.html), which wears this dashboard on a wrist and changes its state as the
+// reader scrolls from scene to scene.
+window.vitalLink = { applyPreset, showView, setStat, setRange }
+
 // ------------------------------------------------------------------ live loop
 
 // Drifting stats pick a new point in their range every couple of seconds and ease toward it.
@@ -808,21 +907,13 @@ function loop(now) {
   if (t > nextClock) {
     renderClocks(t)
     showWorstTone()
+    showPetMood()
     nextClock = t + 0.5
   }
   if (!reduced) requestAnimationFrame(loop)
 }
 renderClocks(0)
 
-// Alerts flash on one shared beat, like a master caution light: inverted for 0.66 s, own colours for
-// 0.54 s (the kit's lamp timing). Reduced motion leaves them inverted.
-if (!reduced) {
-  const blink = () => {
-    const on = document.documentElement.dataset.blink !== 'off'
-    document.documentElement.dataset.blink = on ? 'off' : 'on'
-    setTimeout(blink, on ? 540 : 660)
-  }
-  setTimeout(blink, 660)
-}
+startAlertBeat()
 if (reduced) setInterval(() => loop(performance.now()), 250)
 else requestAnimationFrame(loop)

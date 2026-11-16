@@ -15,9 +15,7 @@
   --dim: #50705d;
 
   /* Widget colours are the Display Kit's own (--phosphor, --pulse, --oxygen, --signal, --neural, --flux,
-     --thermal, --rad), not redefined here. Caution is amber and warning red, used by the lamps and alerts. */
-  --caution: #ffb000; /* amber */
-  --warning: #ff2d2d; /* red */
+     --thermal, --rad), not redefined here. Caution is amber and warning red (the kit's --caution and --warning). */
 
   /* One type scale, four sizes: labels, body, values, clock. Nothing smaller than 10px. */
   --fs-1: 10px;
@@ -253,7 +251,7 @@ body {
   .bottombar { order: 9; }
   .dials { grid-template-columns: repeat(4, 76px); grid-auto-rows: auto; gap: 12px; justify-content: space-between; }
   .orbit { display: grid; gap: 16px; }
-  .companion { position: static; width: min(100%, 320px); aspect-ratio: 1; justify-self: center; }
+  .companion { position: relative; width: min(100%, 320px); aspect-ratio: 1; justify-self: center; }
   .snap { position: static; overflow: visible; padding: 0; scroll-snap-type: none; -webkit-mask-image: none; mask-image: none; display: grid; gap: 24px; }
   .snap-sec > * { max-width: none; }
   .snap-nav { display: none; }
@@ -276,7 +274,6 @@ body {
 
 /* ------------------------------------------------------------ status colours + type scale
    Overrides for the kit's widgets on this page only. */
-.shell .is-crit .tab .lamp svg, .shell .is-crit .tile-icon .lamp svg { background: var(--warning); }
 .shell .chip.crit { background: var(--warning); }
 .shell .chip.warn { color: var(--caution); box-shadow: inset 0 0 0 1.5px var(--caution); }
 .task.late .t-time, .task.late .t-when { color: var(--caution); }
@@ -303,56 +300,124 @@ body {
 .shell .clock-time { font-size: var(--fs-4); }
 /* Bigger labels need a slightly thicker ruler strip to sit in. */
 .shell { --scale-strip: 13px; }
-.shell .has-scale { --strip-h: var(--scale-strip); }
-/* Every bar is the same height. A bar with no scale keeps its thin top strip, and its body grows by the
-   difference instead, so it lines up with the bars that carry scale numbers. Readouts match too. */
-.shell .meter:not(.has-scale) .lane { height: calc(24px + var(--scale-strip) - var(--strip)); }
-.shell .readout .panel { height: calc(24px + var(--scale-strip) - var(--strip)); }
 
-/* ------------------------------------------------------------ alert lamps
-   The lamp over a widget's icon is a small coloured box with a warning sign: amber for caution, red for
-   warning. It flashes, so it reads the same on any widget colour. */
-.shell .is-warn .tab .lamp, .shell .is-crit .tab .lamp { background: var(--c); padding-top: 3px; }
-:root[data-values="tab"] .shell .is-warn .tab .lamp, :root[data-values="tab"] .shell .is-crit .tab .lamp { padding-top: 0; }
-.shell .is-warn .tab .lamp svg, .shell .is-crit .tab .lamp svg {
-  width: 24px; height: 24px; padding: 4px; border-radius: var(--r); color: var(--ink); background: var(--caution);
-}
-.shell .is-crit .tab .lamp svg { background: var(--warning); }
-.shell .is-warn .tile-icon .lamp svg, .shell .is-crit .tile-icon .lamp svg {
-  width: 16px; height: 16px; padding: 2px; border-radius: 2px; color: var(--ink); background: var(--caution);
-}
-.shell .is-crit .tile-icon .lamp svg { background: var(--warning); }
-
-/* ------------------------------------------------------------ inverted alert state
-   A widget at caution (amber) or warning (red) flashes between its own colours and an inverted block of
-   the alert colour: what was drawn in the metric colour (tab, strip, fill, ticks, ring) turns dark, and
-   what was dark (the empty track, notches, gaps) takes the alert colour. A 4px halo of the alert colour
-   squares off the rounded inner corners so the block reads as one shape. main.js sets
-   html[data-blink="off"] for the off half of each 1.2 s beat, so every alert and lamp flashes together;
-   with reduced motion it never does, and the inverted state holds steady. */
-.shell .blk.is-warn, .shell .tile.is-warn { --alert: var(--caution); }
-.shell .blk.is-crit, .shell .tile.is-crit { --alert: var(--warning); }
-:root:not([data-blink="off"]) .shell .blk:is(.is-warn, .is-crit) {
-  --c: var(--ink); --fg: var(--alert); --bg: var(--alert); --card: var(--alert);
-  background: var(--alert); border-radius: var(--r); box-shadow: 0 0 0 4px var(--alert);
-}
-:root:not([data-blink="off"]) .shell :is(.is-warn, .is-crit) .sc { color: var(--alert); }
-:root:not([data-blink="off"]) .shell .has-target :is(.is-warn, .is-crit) .sc:not(.on-strip) { color: var(--ink); }
-:root:not([data-blink="off"]) .shell .solid-trace:is(.is-warn, .is-crit) .slot { --fg: var(--alert); }
-/* Dials: the tile fills in and the ring, icon and number go dark. */
-:root:not([data-blink="off"]) .shell .tile:is(.is-warn, .is-crit) {
-  --c: var(--ink); --card: var(--alert); --text: var(--ink); --muted: var(--ink);
-  background: var(--alert); border-radius: 50%; box-shadow: 0 0 0 4px var(--alert);
-}
-/* The lamp's own box would vanish into the block, so it flips too: dark box, alert-coloured sign. It
-   shows only in the inverted half of the beat; in the other half the widget's own icon is back. */
-.shell :is(.blk, .tile):is(.is-warn, .is-crit) .lamp svg { background: var(--ink); color: var(--alert); }
-.shell :is(.is-warn, .is-crit) .lamp { animation: none; }
-:root[data-blink="off"] .shell :is(.is-warn, .is-crit) .lamp { display: none; }
-
+/* Alerts (inverted, flashing blocks and lamps) are the Display Kit's own: see displays.css. */
 /* Frame flash (debug toggle): the frame lines flash with the alerts, in the worst alert's colour. */
 :root[data-frame-flash][data-alert="warn"]:not([data-blink="off"]) .shell { --frame: var(--caution); }
 :root[data-frame-flash][data-alert="crit"]:not([data-blink="off"]) .shell { --frame: var(--warning); }
+
+/* ------------------------------------------------------------ guided check-ins (flows.js)
+   A panel over the tasks column, so the companion stays visible and reacts. Steps run across the top. */
+.dash { position: relative; }
+.flow {
+  position: absolute; top: 0; right: 0; bottom: 0; width: 440px; z-index: 6; overflow-y: auto;
+  display: grid; align-content: start; gap: 28px; padding: 36px;
+  background: var(--card); border-left: 2px solid var(--frame);
+}
+.flow[hidden] { display: none; }
+.flow header { display: flex; align-items: center; justify-content: space-between; }
+.flow h2 { margin: 0; font: 800 var(--fs-3)/1 var(--mono); }
+.flow-steps { list-style: none; margin: 0; padding: 0; display: flex; gap: 6px; counter-reset: step; }
+.flow-steps li {
+  flex: 1; padding-top: 8px; border-top: 3px solid var(--line); counter-increment: step;
+  font: 700 var(--fs-1)/1.2 var(--mono); color: var(--dim); text-transform: uppercase; letter-spacing: 0.04em;
+}
+.flow-steps li::before { content: counter(step) ' · '; }
+.flow-steps li.done { border-color: color-mix(in srgb, var(--phosphor) 50%, var(--bg)); color: var(--muted); }
+.flow-steps li.on { border-color: var(--phosphor); color: var(--phosphor); }
+.flow-body { display: grid; gap: 24px; }
+.flow-lede { margin: 0; font: 500 var(--fs-2)/1.5 var(--mono); color: var(--text); }
+.flow-lede b { color: var(--phosphor); font-weight: 800; }
+.flow-note { margin: 0; font: 500 var(--fs-1)/1.4 var(--mono); color: var(--muted); }
+.flow-options { display: grid; gap: 14px; }
+.flow-option {
+  display: grid; gap: 6px; padding: 18px; cursor: pointer; text-align: left; color: var(--text);
+  background: var(--bg); border: 2px solid var(--line); border-radius: var(--r);
+}
+.flow-option b { font: 800 var(--fs-3)/1 var(--mono); color: var(--phosphor); }
+.flow-option span { font: 700 var(--fs-2)/1 var(--mono); }
+.flow-option small { font: 500 var(--fs-1)/1.4 var(--mono); color: var(--muted); }
+.flow-option:hover, .flow-option:focus-visible { border-color: var(--phosphor); outline: none; }
+.flow-primary {
+  height: 48px; cursor: pointer; font: 800 var(--fs-2)/1 var(--mono); color: var(--ink);
+  background: var(--phosphor); border: 0; border-radius: var(--r);
+}
+.flow-primary:hover, .flow-primary:focus-visible { background: var(--text); outline: none; }
+.flow-form { display: grid; gap: 16px; }
+.flow-form label { display: grid; gap: 10px; font: 700 var(--fs-1)/1 var(--mono); color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+.flow-input { display: flex; align-items: center; gap: 10px; }
+.flow-input input {
+  width: 160px; height: 52px; padding: 0 14px; font: 800 var(--fs-3)/1 var(--mono); color: var(--text); color-scheme: dark;
+  background: var(--bg); border: 2px solid var(--line); border-radius: var(--r); font-variant-numeric: tabular-nums;
+}
+.flow-input input:focus-visible { border-color: var(--phosphor); outline: none; }
+.flow-input b { font: 700 var(--fs-2)/1 var(--mono); color: var(--muted); text-transform: none; }
+.flow-status { margin: 0; display: flex; align-items: center; gap: 10px; font: 700 var(--fs-2)/1 var(--mono); color: var(--muted); }
+.flow-spin { width: 14px; height: 14px; border: 2px solid var(--line); border-top-color: var(--phosphor); border-radius: 50%; animation: flow-spin 0.8s linear infinite; }
+@keyframes flow-spin { to { rotate: 360deg; } }
+
+/* Live readings: a big number, and a heartbeat dot that pulses with it. */
+.flow-reading { display: flex; align-items: baseline; gap: 10px; padding: 8px 0; color: var(--phosphor); }
+.flow-reading b { font: 800 var(--fs-4)/1 var(--mono); letter-spacing: -0.04em; font-variant-numeric: tabular-nums; min-width: 3ch; }
+.flow-reading > span:last-child { font: 700 var(--fs-2)/1 var(--mono); color: var(--muted); }
+.flow-reading .beat { width: 14px; height: 14px; border-radius: 50%; background: var(--pulse); align-self: center; animation: beat 0.85s ease-out infinite; }
+@keyframes beat { 0%, 100% { scale: 0.7; opacity: 0.6; } 15% { scale: 1.15; opacity: 1; } }
+.flow-progress { height: 6px; background: var(--line); border-radius: var(--r); overflow: hidden; }
+.flow-progress span { display: block; height: 100%; width: 0; background: var(--phosphor); animation: flow-fill 4s linear forwards; }
+@keyframes flow-fill { to { width: 100%; } }
+
+/* The mass devices. SAMMD: the crew member (block) is pushed along a 1 m rail. BMMD: the block rocks on a spring. */
+.rig { position: relative; height: 96px; border: 2px solid var(--line); border-radius: var(--r); background: var(--bg); }
+.rig-body { position: absolute; top: 26px; width: 34px; height: 34px; border-radius: 6px; background: var(--signal); }
+.rig.sammd .rig-rail { position: absolute; left: 20px; right: 20px; top: 66px; height: 3px; background: var(--muted); }
+.rig.sammd .rig-ticks { position: absolute; left: 20px; right: 20px; top: 74px; display: flex; justify-content: space-between; font: 700 var(--fs-1)/1 var(--mono); color: var(--muted); }
+.rig.sammd .rig-ticks i { font-style: normal; }
+.rig.sammd .rig-body { left: 20px; animation: sammd 2.6s cubic-bezier(0.5, 0, 0.9, 0.6) 0.4s forwards; }
+@keyframes sammd { to { left: calc(100% - 54px); } }
+.rig.bmmd .rig-spring {
+  position: absolute; left: 16px; top: 38px; width: calc(50% - 33px); height: 10px;
+  background: repeating-linear-gradient(90deg, var(--muted) 0 2px, transparent 2px 9px);
+  transform-origin: left center; animation: bmmd-spring 0.9s ease-in-out infinite alternate;
+}
+.rig.bmmd .rig-body { left: calc(50% - 17px); animation: bmmd 0.9s ease-in-out infinite alternate; }
+.rig.bmmd::before { content: ''; position: absolute; left: 12px; top: 20px; bottom: 20px; width: 4px; background: var(--muted); }
+@keyframes bmmd { from { translate: -34px 0; } to { translate: 34px 0; } }
+@keyframes bmmd-spring { from { scale: 0.62 1; } to { scale: 1.38 1; } }
+
+/* Results: green for average, amber for moderate, red for out of range. */
+.flow-verdict { display: grid; gap: 8px; padding: 18px; border-radius: var(--r); border: 2px solid var(--phosphor); background: color-mix(in srgb, var(--phosphor) 10%, var(--bg)); }
+.flow-verdict.warn { border-color: var(--caution); background: color-mix(in srgb, var(--caution) 12%, var(--bg)); }
+.flow-verdict.crit { border-color: var(--warning); background: color-mix(in srgb, var(--warning) 12%, var(--bg)); }
+.flow-verdict b { font: 800 var(--fs-3)/1.2 var(--mono); color: var(--phosphor); }
+.flow-verdict.warn b { color: var(--caution); }
+.flow-verdict.crit b { color: var(--warning); }
+.flow-verdict p { margin: 0; font: 500 var(--fs-2)/1.5 var(--mono); color: var(--text); }
+.flow-summary { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.flow-summary li { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 14px; padding-bottom: 12px; border-bottom: 2px solid var(--line); font: 700 var(--fs-2)/1 var(--mono); }
+.flow-summary b { font-variant-numeric: tabular-nums; }
+.flow-chip { padding: 5px 8px; border-radius: var(--r); font: 800 var(--fs-1)/1 var(--mono); color: var(--ink); background: var(--phosphor); }
+.flow-chip.crit { background: var(--warning); }
+
+/* Warning banner along the bottom of the stage after a bad check-in result, over the slow-moving cabin bars. */
+.stage { position: relative; }
+.alert-banner {
+  position: absolute; bottom: 20px; left: 44px; right: 44px; z-index: 4; display: grid; grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center; gap: 14px; padding: 12px 12px 12px 16px; border-radius: var(--r);
+  background: var(--warning); color: var(--ink); box-shadow: 0 0 0 4px var(--warning), 0 16px 40px rgb(0 0 0 / 0.5);
+}
+.alert-banner.warn { background: var(--caution); box-shadow: 0 0 0 4px var(--caution), 0 16px 40px rgb(0 0 0 / 0.5); }
+.alert-banner[hidden] { display: none; }
+.alert-banner > svg { width: 22px; height: 22px; stroke-width: 2.5; }
+.alert-banner p { margin: 0; font: 700 var(--fs-2)/1.4 var(--mono); }
+.alert-banner button { width: 32px; height: 32px; display: grid; place-items: center; cursor: pointer; background: none; color: var(--ink); border: 2px solid currentColor; border-radius: var(--r); }
+.alert-banner button svg { width: 16px; height: 16px; }
+@media (max-width: 1100px) {
+  .flow { position: fixed; inset: 0; width: auto; border-left: 0; }
+  .alert-banner { position: sticky; left: auto; right: auto; margin: 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rig-body, .rig-spring, .flow-reading .beat, .flow-spin { animation: none !important; }
+}
 
 /* ------------------------------------------------------------ debug menu */
 .debug-toggle {

@@ -47,7 +47,8 @@ import {
   Volume2,
   Wind,
 } from 'lucide'
-import { card, usage, Readout, Meter, Radial, Trace, Log } from './components.js'
+import { card, usage, Readout, Meter, Radial, Trace, Log, startAlertBeat } from './components.js'
+import { createSquid } from '../dashboard/squid.js'
 
 // ------------------------------------------------------------------ sample signals
 
@@ -162,7 +163,7 @@ const external = [
   }),
   card({
     title: 'Noise', icon: 'volume-2', accent: 'phosphor',
-    parts: [Meter({ min: 30, max: 90, value: 62, segments: 12, unit: 'dBA', label: 'Cabin level', zones: [{ max: 60, tone: 'ok' }, { max: 72, tone: 'warn' }, { max: Infinity, tone: 'crit' }], scale: ['30', '60', '90'] })],
+    parts: [Meter({ min: 30, max: 90, value: 56, segments: 12, unit: 'dBA', label: 'Cabin level', zones: [{ max: 60, tone: 'ok' }, { max: 72, tone: 'warn' }, { max: Infinity, tone: 'crit' }], scale: ['30', '60', '90'] })],
   }),
   card({
     title: 'Space weather', icon: 'orbit', accent: 'flux',
@@ -224,7 +225,7 @@ const user = [
   }),
   card({
     title: 'Vision check', icon: 'eye', accent: 'signal',
-    parts: [Readout({ value: '−0.50', unit: 'D', sub: 'Near-focus shift', size: 'md' }), Meter({ min: -1.5, max: 0.5, value: -0.5, digits: 2, unit: 'D', label: 'Vs preflight', target: [-0.25, 0.25], zones: [{ max: -0.76, tone: 'crit' }, { max: -0.26, tone: 'warn' }, { max: Infinity, tone: 'ok' }], scale: ['−1.5', '+0.5'] })],
+    parts: [Readout({ value: '−0.20', unit: 'D', sub: 'Near-focus shift', size: 'md' }), Meter({ min: -1.5, max: 0.5, value: -0.2, digits: 2, unit: 'D', label: 'Vs preflight', target: [-0.25, 0.25], zones: [{ max: -0.76, tone: 'crit' }, { max: -0.26, tone: 'warn' }, { max: Infinity, tone: 'ok' }], scale: ['−1.5', '+0.5'] })],
     note: 'Bright edge = preflight baseline.',
   }),
   card({
@@ -286,6 +287,8 @@ const user = [
   }),
 ]
 
+const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
 // ------------------------------------------------------------------ layout
 
 function section(id, title, blurb, cards) {
@@ -304,20 +307,61 @@ const LEGEND = [
   ['Log', 'list', 'Events with status chips.', 'chips · pipeline'],
 ]
 
-// The same widget in each state, to show the warning lamp.
+// The same widgets in each state, to show how alerts look: a bar and a dial. These are the only alerts
+// on the page; every other sample sits in its normal range, so nothing else flashes.
 const O2_ZONES = [{ max: 25, tone: 'crit' }, { max: 40, tone: 'warn' }, { max: Infinity, tone: 'ok' }]
 const states = [
-  ['Normal', 82, 'No lamp.'],
-  ['Warning', 34, 'The icon flashes to a warning sign: approaching a limit.'],
-  ['Bad', 18, 'A red warning sign flashes over the icon: out of the safe range.'],
+  ['Normal', 82, 'Its own colours.'],
+  ['Caution', 34, 'Approaching a limit. The widget flashes between its own colours and an inverted amber block, with a warning lamp over the icon.'],
+  ['Warning', 18, 'Out of the safe range. The same, in red.'],
 ].map(([name, value, note]) => card({
   title: `Suit O₂ · ${name}`, icon: 'wind', accent: 'oxygen', note,
-  parts: [Meter({ min: 0, max: 100, value, unit: '%', label: 'Tank', zones: O2_ZONES, markers: [{ at: 25, label: 'Return' }, { at: 40, label: 'Low' }] })],
+  parts: [
+    Radial({ min: 0, max: 100, value, zones: O2_ZONES, center: (v) => `${v}%`, sub: 'Tank' }),
+    Meter({ min: 0, max: 100, value, unit: '%', label: 'Tank', zones: O2_ZONES, markers: [{ at: 25, label: 'Return' }, { at: 40, label: 'Low' }] }),
+  ],
 }))
+
+// Where a number comes from (LIVE sensor or LOGGED by hand, and when) and what it means, as used on
+// the ORBIT dashboard: a source tag in the card's header and a context line under the widget.
+function annotated(o, source, context) {
+  const c = card(o)
+  c.querySelector('header').append(Object.assign(document.createElement('span'), { className: `prov ${source.split(' ')[0].toLowerCase()}`, textContent: source }))
+  c.querySelector('.card-body').append(Object.assign(document.createElement('span'), { className: 'ctx', textContent: context }))
+  return c
+}
+const annotations = [
+  annotated({ title: 'Water', icon: 'glass-water', accent: 'oxygen', parts: [Meter({ min: 0, max: 3, value: 1.9, digits: 1, unit: 'L', target: [2.5, 3], scale: ['0', '3'] })] }, 'Logged · 11:30', '0.6 L to daily goal'),
+  annotated({ title: 'SpO₂', icon: 'droplets', accent: 'oxygen', parts: [Meter({ min: 85, max: 100, value: 98, markers: [{ at: 90, label: '90' }, { at: 94, label: '94' }], scale: ['85', '100'] })] }, 'Live', 'Normal'),
+  annotated({ title: 'Body mass', icon: 'scale', accent: 'signal', parts: [Readout({ value: 71.8, digits: 1, unit: 'kg', trend: 'down' }), Trace({ mode: 'line', data: walk(24, 74, 0.6, 3, 71, 74.5).map((v, i) => v - i * 0.08), min: 69, max: 76 })] }, 'Logged · D040', '−1.2 kg from preflight'),
+]
+
+// The companion squid in each of its moods. Its mood comes from every stat: each caution counts 1 and
+// each warning 3. Its bubble names the worst one. Tap a bowl for bubbles; the squids follow the pointer.
+const companions = [
+  ['happy', 'Happy', 'Feeling great!', '', 0, 'No cautions or warnings. Green, smiling, tentacles curling freely.'],
+  ['okay', 'Okay', 'Vision shift low', '', 0, 'One or two cautions. Green, a flat mouth, calmer.'],
+  ['low', 'Not great', 'Hydration low', '1.1 L to daily goal', 2, 'Several cautions, or a warning. Amber, heavy eyelids, a frown, drooping.'],
+  ['bad', 'Bad', 'Heart rate high', '118 bpm', 4, 'Several warnings. Red, worried brows, sweating, restless tentacles.'],
+].map(([mood, name, hint, detail, more, note]) => {
+  const c = document.createElement('article')
+  c.className = 'card'
+  c.innerHTML = `<header><h3>Companion · ${name}</h3></header><div class="card-body"><div class="bowl"></div><p class="note">${note}</p></div>
+    <footer><span class="tag">Companion</span></footer>`
+  const sq = createSquid({ reduced })
+  sq.setMood(mood, hint, more, detail)
+  const bowl = c.querySelector('.bowl')
+  bowl.append(sq.el)
+  bowl.addEventListener('pointerdown', (e) => sq.fizz(e.clientX, e.clientY))
+  live.push(sq)
+  return c
+})
 
 const root = document.getElementById('kit')
 root.append(
-  section('lamps', 'Warning lamps', 'The widget icon flashes to a warning sign when a value nears its limit, and to a red warning sign when it leaves the safe range.', states),
+  section('alerts', 'Alerts', 'Amber when a value nears its limit, red when it leaves the safe range. The whole widget inverts and flashes, and every alert on the page flashes together.', states),
+  section('companion', 'Companion', 'The squid that mirrors the crew member. Four moods, a speech bubble that names what needs attention.', companions),
+  section('annotations', 'Source and context', 'A source tag says whether a number is live from a sensor or logged by hand, and when. A context line says what it means.', annotations),
   section('internal', 'Internal', 'Measured on the body by the wearable.', internal),
   section('external', 'External', 'Measured in the cabin, suit or environment.', external),
   section('user', 'User input', 'Logged by the crew member or from lab results.', user),
@@ -359,7 +403,6 @@ createIcons({ icons: { Activity, ArrowDownToLine, Brain, Calendar, ChartSpline, 
 
 // ------------------------------------------------------------------ live loop
 
-const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 let last = performance.now()
 let t = 0
 let nextBeat = 0
@@ -376,3 +419,6 @@ function loop(now) {
   if (!reduced) requestAnimationFrame(loop)
 }
 requestAnimationFrame(loop)
+// With reduced motion the loop doesn't run, so draw each live widget once.
+if (reduced) for (const p of live) p.tick(0, 0)
+startAlertBeat()
